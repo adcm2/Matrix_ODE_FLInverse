@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # set the number of processors
-njob=32
+njob=1
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.1

@@ -1,4 +1,13 @@
+#ifndef EIGEN_DONT_PARALLELIZE
+#define EIGEN_DONT_PARALLELIZE
+#endif
+
+// #ifndef EIGEN_USE_BLAS
+// #define EIGEN_USE_BLAS
+// #endif
 #include <math.h>
+#include <omp.h>
+#include <stdio.h>
 
 #include <Eigen/Core>
 #include <Eigen/IterativeLinearSolvers>

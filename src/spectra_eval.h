@@ -2,6 +2,8 @@
 #define SPECTRA_EVAL_GUARD_H
 
 #include <math.h>
+#include <omp.h>
+#include <stdio.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -369,9 +371,7 @@ modespectra::rawspectra() {
     double oneovertwopi = 1.0 / (2.0 * 3.1415926535);
     std::complex<double> imep = static_cast<std::complex<double> >(ep);
 
-    // go through frequencies:
-    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> vlhs;
-    // #pragma omp parallel for
+#pragma omp parallel for
     for (int idx = 0; idx < nt / 2 + 1; ++idx) {
         tmp(0, idx) = w[idx] * oneovertwopi;   // frequency
         // std::complex<double> winp;             // imaginary shifted frequency
@@ -379,13 +379,15 @@ modespectra::rawspectra() {
 
         // run through all frequencies and if between f1 and f2 compute
         if (idx > i1 - 1 && idx < i2 + 1) {
+            // go through frequencies:
+            Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> vlhs;
             // calculate x in Ax = b
             vlhs = modespectra::finv(w[idx] - myi * imep);
 
             // find acceleration response using receiver vectors
             tmp.block(1, idx, nelem2, 1) = -(w[idx] - myi * imep) *
                                            (w[idx] - myi * imep) *
-                                           this->vr.transpose() * vlhs;
+                                           vr.transpose() * vlhs;
         };
     };
     return tmp;
