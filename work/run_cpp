@@ -1,0 +1,31 @@
+#!/bin/bash
+# set minimum and maximum frequency for the calculations (in mHz)
+fmin=0.1
+fmax=1.0
+
+# time step (seconds)
+tstep=20
+
+# time length (hours)
+tend=512
+
+# frequency step (mHz)
+fstep=0.05
+
+# target block width (mHz)
+fblock=0.05
+
+# start and end times for Cosine Bell window (hours)
+wstart=0
+wend=512
+
+../build/bin/matrix_read << !
+$fmin
+$fmax
+$tstep
+$tend
+$fstep
+$fblock
+$wstart
+$wend
+!

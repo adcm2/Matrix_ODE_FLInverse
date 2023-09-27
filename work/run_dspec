@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# set the number of processors
+njob=32
+
+# set minimum and maximum frequency for the calculations (in mHz)
+fmin=0.1
+fmax=1.0
+
+# time step (seconds)
+tstep=20
+
+# time length (hours)
+tend=512
+
+# frequency step (mHz)
+fstep=0.05
+
+# target block width (mHz)
+fblock=0.05
+
+# start and end times for Cosine Bell window (hours)
+wstart=0
+wend=512
+
+# source file
+source="dspec.source"
+
+# reciever file
+reciever="dspec.rec"
+
+# matrix file
+matrix="matrix.bin"
+
+# prefix for time series files
+timeprefix="time_test"
+
+# prefix for spectra files
+spectraprefix="spectra_test"
+
+
+../../coupling/bin/dspec_pre << !
+$source
+$reciever
+$fmin
+$fmax
+$tstep
+$tend
+$fstep
+$fblock
+$wstart
+$wend
+$njob
+$matrix
+!
+
+
+
+for i in $(seq 1 $njob)
+do
+  ../../coupling/bin/dspec_cal $i > dspec_cal.out.$i &
+done
+wait
+
+../../coupling/bin/dspec_pro << !
+$njob
+$spectraprefix
+$timeprefix
+!
+
+# clean up temporary files
+rm dspec_job.*
+rm dspec_cal.out.*
+
