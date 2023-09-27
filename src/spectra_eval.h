@@ -34,13 +34,13 @@ class modespectra {
 
     // solve for spectra
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> finv(
-        const std::complex<double>&);
+        const std::complex<double> &);
 
     // postprocessing
     Eigen::Matrix<double, 1, Eigen::Dynamic> postprocess(
-        const Eigen::Matrix<std::complex<double>, 1, Eigen::Dynamic>&);
+        const Eigen::Matrix<std::complex<double>, 1, Eigen::Dynamic> &);
     Eigen::Matrix<std::complex<double>, 1, Eigen::Dynamic> postprocessf(
-        const Eigen::Matrix<double, 1, Eigen::Dynamic>&);
+        const Eigen::Matrix<double, 1, Eigen::Dynamic> &);
 
     // number of points
     int nt, nt0;
@@ -96,12 +96,12 @@ modespectra::modespectra(std::string filepath, std::string filePath2,
     int qex = 4;
     ep = mex / this->tout;
     // David's version
-    //  df = ep / (6.28318530718 * qex);
+    df = ep / (6.28318530718 * qex);
 
     // my version
-    df = 1.0 / this->tout;             // find df
+    // df = 1.0 / this->tout;             // find df
     nt = std::ceil(1.0 / (df * dt));   // find nt
-    int ne = static_cast<int>(log(static_cast<double>(nt)) / log(2.0) + 3);
+    int ne = static_cast<int>(log(static_cast<double>(nt)) / log(2.0) + 1);
     nt = pow(2, ne);   // finish increase in density
     std::cout << "nt: " << this->nt << std::endl;
     df = 1.0 / (nt * dt);   // new df
@@ -176,7 +176,8 @@ modespectra::modespectra(std::string filepath, std::string filePath2,
     infile.read(reinterpret_cast<char *>(&matbreak), 8);   // placeholder
     infile.read(reinterpret_cast<char *>(a2.data()), matbytes);
     infile.read(reinterpret_cast<char *>(&i), sizeof(i));   // placeholder
-    // std::cout << a0.cwiseAbs().block(0,0,10,10)/a0.cwiseAbs()(0,0) << std::endl;
+    // std::cout << a0.cwiseAbs().block(0,0,10,10)/a0.cwiseAbs()(0,0) <<
+    // std::endl;
     //////////////////////////////////////////////////////////////////////////
     ///////////////   closing and checking closed correctly    ///////////////
     //////////////////////////////////////////////////////////////////////////
@@ -205,7 +206,7 @@ modespectra::modespectra(std::string filepath, std::string filePath2,
 
     // finding number of elements
     nelem2 = (file_size2 - 16) / (16 * nelem) - 1;
-// std::cout << nelem2 << std::endl;
+    // std::cout << nelem2 << std::endl;
     //////////////////////////////////////////////////////////////////////////
     ///////////////   reading in receiver and source vectors   ///////////////
     //////////////////////////////////////////////////////////////////////////
@@ -291,9 +292,8 @@ modespectra::modespectra(std::string filepath, std::string filePath2,
 
 // define inverse function
 Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>
-modespectra::finv(const std::complex<double>& winp) {
-
-    //coupling matrix
+modespectra::finv(const std::complex<double> &winp) {
+    // coupling matrix
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> A(
         nelem, nelem);
 
@@ -311,17 +311,17 @@ modespectra::finv(const std::complex<double>& winp) {
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>,
         Eigen::BlockPreconditioner<std::complex<double> > >
         solver;
-    //sparse trial
-    // Eigen::SparseMatrix<std::complex<double> > S;
-    // S = A.sparseView();
-    //          Eigen::BiCGSTAB<
-    //                 Eigen::SparseMatrix<std::complex<double> >,
-    //                 Eigen::IncompleteLUT<std::complex<double> > >
-    //                 solver;
-                // Eigen::BiCGSTAB<
-                //     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>,
-                //     Eigen::DiagonalPreconditioner<std::complex<double> > >
-                //     solver;
+    // sparse trial
+    //  Eigen::SparseMatrix<std::complex<double> > S;
+    //  S = A.sparseView();
+    //           Eigen::BiCGSTAB<
+    //                  Eigen::SparseMatrix<std::complex<double> >,
+    //                  Eigen::IncompleteLUT<std::complex<double> > >
+    //                  solver;
+    //  Eigen::BiCGSTAB<
+    //      Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>,
+    //      Eigen::DiagonalPreconditioner<std::complex<double> > >
+    //      solver;
     // indices
     std::vector<int> vecidx;
     vecidx = randomfunctions::findindex(winp.real(), wtb, ll, ww.real());
@@ -392,8 +392,9 @@ modespectra::rawspectra() {
 };
 
 Eigen::Matrix<double, 1, Eigen::Dynamic>
-modespectra::postprocess(const Eigen::Matrix<std::complex<double>, 1, Eigen::Dynamic>&
-                             rawspec) {   // do Fourier transform
+modespectra::postprocess(
+    const Eigen::Matrix<std::complex<double>, 1, Eigen::Dynamic>
+        &rawspec) {   // do Fourier transform
 
     using Float = double;
     using Complex = std::complex<Float>;
@@ -452,7 +453,8 @@ modespectra::postprocess(const Eigen::Matrix<std::complex<double>, 1, Eigen::Dyn
 };
 
 Eigen::Matrix<std::complex<double>, 1, Eigen::Dynamic>
-modespectra::postprocessf(const Eigen::Matrix<double, 1, Eigen::Dynamic>& rawspec) {
+modespectra::postprocessf(
+    const Eigen::Matrix<double, 1, Eigen::Dynamic> &rawspec) {
     using Float = double;
     using Complex = std::complex<Float>;
     using RealVector = FFTWpp::vector<Float>;

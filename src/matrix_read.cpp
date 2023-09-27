@@ -45,14 +45,14 @@ main() {
     // double wtb = 0.05;      // width of target block (mHz)
     // double t1 = 0.0;       // cosine bell start (hrs)
     // double t2 = 512.0;     // cosine bell stop (hrs)
-    double f1 ;
-    double f2 ;
-    double dt ;
-    double tout ;
-    double df0 ;
-    double wtb ;
-    double t1 ;
-    double t2 ;
+    double f1;
+    double f2;
+    double dt;
+    double tout;
+    double df0;
+    double wtb;
+    double t1;
+    double t2;
     std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2;
     // freq_setup mytest(f1, f2, dt, tout, df0, wtb, t1, t2);
     // mytest(5);
