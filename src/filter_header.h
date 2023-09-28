@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace filters {
+
 // using xvt = std::iter_value_t<xIter>;
 template <typename xIter>
 std::iter_value_t<xIter>

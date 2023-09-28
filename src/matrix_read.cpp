@@ -20,10 +20,11 @@
 #include <string>
 #include <vector>
 
-#include "calc_setup.h"
+// #include "calc_setup.h"
 #include "matrix_header.h"
 // #include "spectra_header.h"
 #include "spectra_eval.h"
+#include "matrix_read.h"
 
 using std::cout;
 using std::endl;
@@ -66,6 +67,7 @@ main() {
     // freq_setup mytest(f1, f2, dt, tout, df0, wtb, t1, t2);
     // mytest(5);
     // Get starting timepoint
+    
     auto start = high_resolution_clock::now();
     modespectra mymode(filePath, filePath2, filePath3, f1, f2, dt, tout, df0,
                        wtb, t1, t2);

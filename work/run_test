@@ -1,0 +1,5 @@
+#!/bin/bash
+mval=32
+../build/bin/test << !
+$mval
+!

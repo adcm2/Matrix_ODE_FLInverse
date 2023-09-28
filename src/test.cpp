@@ -1,6 +1,6 @@
-#ifndef EIGEN_DONT_PARALLELIZE
-#define EIGEN_DONT_PARALLELIZE
-#endif
+// #ifndef EIGEN_DONT_PARALLELIZE
+// #define EIGEN_DONT_PARALLELIZE
+// #endif
 // #ifndef EIGEN_USE_BLAS
 // #define EIGEN_USE_BLAS
 // #endif
@@ -13,25 +13,60 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <chrono>
+#include <filesystem>
 #include <iostream>
 #include <vector>
 
 #include "blockindex.h"
+#include "filter_base.h"
+#include "freq_setup.h"
+#include "matrix_read.h"
 using namespace std::chrono;
 int
 main() {
-    int n = 5000;
-    int m = 32;
-    Eigen::Matrix<double, Eigen::Dynamic, 1> ll =
-        Eigen::Matrix<double, Eigen::Dynamic, 1>::Random(n, 1);
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> ww =
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Random(n, n);
-    Eigen::Matrix<double, Eigen::Dynamic, 1> x;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> y(n, m);
-    std::vector<int> vecn;
-    for (int i = 0; i < m; ++i) {
-        vecn.push_back(static_cast<double>(i) / static_cast<double>(m));
-    }
+    std::vector<double> myval, myval2;
+    myval.push_back(1.0);
+    myval.push_back(2.0);
+    myval2.resize(myval.size());
+    typedef std::vector<double>::iterator ptr;
+    filterclass::hann<ptr> myhann(1.0, 2.0, 0.1);
+    myhann.filter(myval.begin(), myval.end(), myval2.begin());
+    std::string filePath;
+    std::string filePath2;
+    std::string filePath3;
+    std::string pathstring;
+    // std::string firstName = "/vector_sr.bin";
+    pathstring = std::filesystem::current_path();
+    filePath = pathstring + "/matrix.bin";
+    filePath2 = pathstring + "/vector_sr.bin";
+    filePath3 = pathstring + "/freq_sph.bin";
+    couplematrix mydat(filePath, filePath2, filePath3);
+    std::cout << mydat.nelem() << std::endl;
+    std::cout << mydat.a0()(1, 1) << std::endl;
+
+    double f1 = 0.1;       // minimum (mHz)
+    double f2 = 1.0;       // maximum (mHz)
+    double dt = 20.0;      // timestep (s)
+    double tout = 512.0;   // time length (hrs)
+    double df0 = 0.05;     // frequency step (mHz)
+    double wtb = 0.05;     // width of target block (mHz)
+    double t1 = 0.0;       // cosine bell start (hrs)
+    double t2 = 512.0;     // cosine bell stop (hrs)
+    freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2);
+
+    // int n = 5000;
+    // int m;
+    // std::cin >> m;
+    // Eigen::Matrix<double, Eigen::Dynamic, 1> ll =
+    //     Eigen::Matrix<double, Eigen::Dynamic, 1>::Random(n, 1);
+    // Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> ww =
+    //     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>::Random(n, n);
+    // Eigen::Matrix<double, Eigen::Dynamic, 1> x;
+    // Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> y(n, m);
+    // std::vector<int> vecn;
+    // for (int i = 0; i < m; ++i) {
+    //     vecn.push_back(static_cast<double>(i) / static_cast<double>(m));
+    // }
 
     auto start = high_resolution_clock::now();
     // lusolve.compute(ww);
@@ -40,18 +75,18 @@ main() {
     // printf("Hello from process: %d\n", omp_get_thread_num());
     // Get ending timepoint
 
-#pragma omp parallel for
-    for (int i = 0; i < m; ++i) {
-        if (i < 2 * m) {
-            Eigen::PartialPivLU<
-                Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> >
-                lusolve;
-            lusolve.compute(ww * (1 + vecn[i]));
-            x = lusolve.solve(ll);
-            y.block(0, i, n, 1) = x;
-        }
-        // printf("Hello from process: %d\n", omp_get_thread_num());
-    }
+    // #pragma omp parallel for
+    //     for (int i = 0; i < m; ++i) {
+    //         if (i < m) {
+    //             Eigen::PartialPivLU<
+    //                 Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> >
+    //                 lusolve;
+    //             lusolve.compute(ww * (1 + vecn[i]));
+    //             x = lusolve.solve(ll);
+    //             y.block(0, i, n, 1) = x;
+    //         }
+    //         // printf("Hello from process: %d\n", omp_get_thread_num());
+    //     }
     auto stop = high_resolution_clock::now();
 
     // Get duration. Substart timepoints to
