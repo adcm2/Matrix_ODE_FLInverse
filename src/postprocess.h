@@ -3,78 +3,76 @@
 
 #include <FFTWpp>
 #include <cassert>
+#include <iterator>
 
-#include "filter_header.h"
+// #include "filter_header.h"
+#include "filter_base.h"
+using namespace filterclass;
 
 namespace postprocess {
 
-template <typename INIT, typename FIN>
+enum class ConvertDirection { Forward, Backward };
+
+template <typename INIT, typename FILTVEC, typename FIN>
 class PostProcessBase {
+    using Float = double;
+    using Complex = std::complex<Float>;
+    using RealVector = FFTWpp::vector<Float>;
+    using ComplexVector = FFTWpp::vector<Complex>;
+    using namespace std::complex_literals;
+
    public:
     /*default constructor*/
     PostProcessBase() : m_isinitialized(false) {}
 
-    template <typename INIT, typename FIN>
-    void transform(const INIT& finp, FIN& fout) {
+    /* actual*/
+    PostProcessBase(const INIT& vec_inp, const FILTVEC& vec_filt, FIN& vec_out,
+                    ConvertDirection direc)
+        : m_isinitialized(true) {}
+    template <typename INIT, typename FILTVEC, typename FIN>
+    void transform(const INIT& vec_inp, const FILTVEC& vec_filt, FIN& vec_out,
+                   ConvertDirection direc) {
         assert(m_isinitialized && "Not initialized");
-        using Float = double;
-        using Complex = std::complex<Float>;
-        using RealVector = FFTWpp::vector<Float>;
-        using ComplexVector = FFTWpp::vector<Complex>;
-        using namespace std::complex_literals;
 
-        // set up for FT
+        // length of input and output
+        auto leninp = std::distance(vec_inp.begin(), vec_inp.end());
+        auto lenout = std::distance(vec_out.begin(), vec_out.end());
 
-        RealVector testFL(nt), checkFL(nt);
-        ComplexVector outFL(nt / 2 + 1);
+        // direction of transform
+        if (direc == ConvertDirection::Backward) {
+            RealVector outFL(lenout);
+            ComplexVector inFL(leninp);
+        } else {
+            ComplexVector outFL(lenout);
+            RealVector inFL(leninp);
+        }
 
-        // Form the plans.
+        // Form the plans
         auto flag = FFTWpp::Measure | FFTWpp::Estimate;
-
+        auto inview = FFTWpp::MakeDataView1D(inFL);
         auto outview = FFTWpp::MakeDataView1D(outFL);
-        auto outview2 = FFTWpp::MakeDataView1D(checkFL);
-        auto backward_plan = FFTWpp::Plan(outview, outview2, flag);
-        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> tmpspec;
-        Eigen::Matrix<double, 1, Eigen::Dynamic> vecout;
-
-        tmpspec.resize(this->nt / 2 + 1, 1);
-
-        // set up Hann filter
-        double fac = 0.1;
-        double f11 = this->f1;
-        double f22 = this->f2;
-        double f12 = f11 + fac * (f22 - f11);
-        double f21 = f22 - fac * (f22 - f11);
+        auto fftplan = FFTWpp::Plan(inview, outview, flag);
 
         // fill out for FT
-        for (int idx = 0; idx < nt / 2 + 1; ++idx) {
-            // actual frequency
-            double finp;
-            finp = static_cast<double>(idx) * this->df;
-            outFL[idx] =
-                rawspec(0, idx) * filters::hann(&finp, &f11, &f12, &f21, &f22);
+        auto itinp = vec_inp.begin();
+        for (int idx = 0; idx < leninp; ++idx) {
+            inFL[idx] = itinp[idx];
         }
 
         // execute FT
-        backward_plan.Execute();
-
-        // do corrections
-        auto myit2 = checkFL.begin();
+        fftplan.Execute();
 
         // output
-        vecout.resize(1, nt);
-        for (int idx = 0; idx < nt; ++idx) {
-            double tinp;
-            tinp = static_cast<double>(idx) * dt;
-            if (tinp < this->tout) {
-                vecout(0, idx) = myit2[idx] * exp(this->ep * t[idx]) * df;
-            }
+        auto itout = vec_out.begin();
+        for (int idx = 0; idx < lenout; ++idx) {
+            itout[idx] = outFL[idx];
         }
-        return vecout;
     }
 
    protected:
     mutable bool m_isinitialized;
+    auto leninp;
+    auto lenout;
 };
 
 }   // namespace postprocess

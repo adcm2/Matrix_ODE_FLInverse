@@ -27,10 +27,17 @@ main() {
     std::vector<double> myval, myval2;
     myval.push_back(1.0);
     myval.push_back(2.0);
+    myval.push_back(2.1);
     myval2.resize(myval.size());
+    myval2[0] = 1.0;
+    myval2[1] = 2.0;
+    myval2[2] = 1.0;
     typedef std::vector<double>::iterator ptr;
-    filterclass::hann<ptr> myhann(1.0, 2.0, 0.1);
-    myhann.filter(myval.begin(), myval.end(), myval2.begin());
+    filterclass::hann myhann(myval.begin(), myval.end(), myval2.begin(), 0.0,
+                             2.5, 0.1);
+    myhann.filter();
+    std::cout << myval2[0] << " " << myval2[1] << " " << myval2[2] << std::endl;
+
     std::string filePath;
     std::string filePath2;
     std::string filePath3;
