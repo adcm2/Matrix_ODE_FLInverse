@@ -371,7 +371,7 @@ modespectra::rawspectra() {
     double oneovertwopi = 1.0 / (2.0 * 3.1415926535);
     std::complex<double> imep = static_cast<std::complex<double> >(ep);
 
-#pragma omp parallel for
+    // #pragma omp parallel for
     for (int idx = 0; idx < nt / 2 + 1; ++idx) {
         tmp(0, idx) = w[idx] * oneovertwopi;   // frequency
         // std::complex<double> winp;             // imaginary shifted frequency
