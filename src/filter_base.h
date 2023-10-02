@@ -65,7 +65,7 @@ class hann : public filterbase<xtype> {
     //     : Base(p1, p2, fac){};
     // void filter();
 
-    template <xIter, yIter>
+    template <typename xIter, typename yIter>
     void filter(xIter xbegin, xIter xend, yIter ybegin) {
         assert(m_isInitialized && "Filter not initialized");
         if (xbegin != xend) {
@@ -81,6 +81,7 @@ class hann : public filterbase<xtype> {
         }
     };
 
+    template <typename xIter>
     xtype filterindividual(xIter xpos) {
         if (xpos[0] < m_p11) {
             return static_cast<xtype>(0.0);

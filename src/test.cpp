@@ -19,8 +19,12 @@
 
 #include "blockindex.h"
 #include "filter_base.h"
+#include "filter_header.h"
 #include "freq_setup.h"
 #include "matrix_read.h"
+// #include "postprocess.h"
+#include "postprocessfunctions.h"
+
 using namespace std::chrono;
 int
 main() {
@@ -33,9 +37,9 @@ main() {
     myval2[1] = 2.0;
     myval2[2] = 1.0;
     typedef std::vector<double>::iterator ptr;
-    filterclass::hann myhann(myval.begin(), myval.end(), myval2.begin(), 0.0,
-                             2.5, 0.1);
-    myhann.filter();
+    filterclass::hann myhann(0.0, 2.5, 0.1);
+    myhann.filter(myval.begin(), myval.end(), myval2.begin());
+
     std::cout << myval2[0] << " " << myval2[1] << " " << myval2[2] << std::endl;
 
     std::string filePath;

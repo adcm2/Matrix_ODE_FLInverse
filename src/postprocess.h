@@ -1,7 +1,7 @@
 #ifndef POSTPROCESS_GUARD_H
 #define POSTPROCESS_GUARD_H
 
-#include <FFTWpp>
+#include <FFTWpp/All>
 #include <cassert>
 #include <iterator>
 
@@ -25,7 +25,7 @@ class PostProcessBase {
     PostProcessBase() : m_isinitialized(false) {}
 
     /* actual*/
-    PostProcessBase(const len_inp, const len_out)
+    PostProcessBase(const int& len_inp, const int& len_out)
         : m_isinitialized(true), leninp(len_inp), lenout(outlen) {
         inFL.resize(len_inp);
         outFL.resize(len_out);
@@ -36,7 +36,7 @@ class PostProcessBase {
         fftplan = FFTWpp::Plan(inview, outview, flag);
     }
 
-    template <typename INIT, typename FIN>
+    // template <typename INIT, typename FIN>
     FIN transformcr(const INIT& vecin) {
         assert(m_isinitialized && "Not initialized");
         bool m_rightlen = (vecin.size() == leninp);
@@ -56,12 +56,12 @@ class PostProcessBase {
 
    protected:
     mutable bool m_isinitialized;
-    auto leninp;
-    auto lenout;
-    auto flag;
-    auto inview;
-    auto outview;
-    auto fftplan;
+    int leninp;
+    int lenout;
+    FFTWpp::PlanFlag flag;
+    FFTWpp::DataView inview;
+    FFTWpp::DataView outview;
+    FFTWpp::Plan fftplan;
     INIT inFL;
     FIN outFL;
 };

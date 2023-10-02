@@ -26,6 +26,7 @@
 #include "postprocessfunctions.h"
 
 namespace modespectrafunctions {
+using complexd = std::complex<double>;
 
 private:
 m_rawseismogram, m_filtseismogram;
@@ -41,10 +42,14 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata) {
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
                       Eigen::Dynamic>::Zero(calcdata.nelem2() + 1,
                                             calcdata.nt() / 2 + 1);
+
+    //////////////////////////////////////////////////////////////////////////////////
+    // some simple values
     std::complex<double> myi(0.0, 1.0);
     double oneovertwopi = 1.0 / (2.0 * 3.1415926535);
     std::complex<double> imep =
         static_cast<std::complex<double> >(calcdata.ep());
+    //////////////////////////////////////////////////////////////////////////////////
 
     // #pragma omp parallel for
     for (int idx = 0; idx < calcdata.nt() / 2 + 1; ++idx) {
@@ -64,6 +69,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata) {
 
             // declare value of A
             A = matdata.a0() + winp * matdata.a1() + winp * winp * matdata.a2();
+
             // include diagonal component
             for (int idx = 0; idx < A.rows(); ++idx) {
                 A(idx, idx) = A(idx, idx) - winp * winp;
@@ -119,7 +125,8 @@ Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
 calc_seismogram(const freq_setup& calcdata,
                 const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
                                     Eigen::Dynamic>& vec_rawspec) {
-    filterclass::hann freqfilter(calcdata.f1(), calcdata.f2(), 0.1);
+    // filterclass::hann freqfilter(calcdata.f1(), calcdata.f2(), 0.1);
+    // declare filtered matrix
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
         filtspec(vec_rawspec.rows(), vec_rawspec.cols());
     for (int idx = 0; idx < calcdata.nt(); ++idx) {
@@ -132,6 +139,10 @@ calc_seismogram(const freq_setup& calcdata,
     }
 
     // take FT into time domain
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> seisout =
+        simpfreq2time(vec_rawspec, calcdata.t(), calcdata.tout(),
+                      calcdata.ep());
+    return seisout;
 };
 
 };   // namespace modespectrafunctions

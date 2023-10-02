@@ -19,13 +19,13 @@ template <typename xtype>
 xtype
 hannref(const xtype& f, const xtype& f1, const xtype& f2, const xtype& fac) {
     bool ltmp;
-    double fac = 0.1;
+    // double fac = 0.1;
     xtype f11 = f1;
     xtype f22 = f2;
     xtype f12 = f11 + fac * (f22 - f11);
     xtype f21 = f22 - fac * (f22 - f11);
     ltmp = (f11 == 0.0 && f12 == 0.0 && f21 == 0.0 && f22 == 0.0);
-    // std::cout << ltmp << std::endl;
+
     if (!ltmp) {
         if (f < f11) {
             return static_cast<xtype>(0.0);
