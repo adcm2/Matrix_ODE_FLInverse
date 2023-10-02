@@ -11,6 +11,7 @@ class freq_setup {
     freq_setup(double, double, double, double, double, double, double, double);
 
     // double functions
+    double f(int idx) const { return static_cast<double>(idx) * m_df; }
     double f1() const { return m_f1; }
     double f2() const { return m_f2; }
     double tout() const { return m_tout; }
@@ -30,18 +31,18 @@ class freq_setup {
     int i2() const { return m_i2; }
     int i12() const { return m_i12; }
     int i22() const { return m_i22; }
-    int nelem() const { return m_nelem; }
-    int nelem2() const { return m_nelem2; }
 
     // vector returns
     std::vector<double> w() const { return m_w; }
     std::vector<double> t() const { return m_t; }
+    double w(int idx) const { return m_w[idx]; }
+    double t(int idx) const { return m_t[idx]; }
 
    private:
     double m_f1, m_f2, m_tout, m_df0, m_wtb, m_t1, m_t2, m_df, m_ep, m_df2,
         m_dt;
     // number of points
-    int m_nt, m_nt0, m_i1, m_i2, m_i12, m_i22, m_nelem, m_nelem2;
+    int m_nt, m_nt0, m_i1, m_i2, m_i12, m_i22;
 
     std::vector<double> m_w;
     std::vector<double> m_t;

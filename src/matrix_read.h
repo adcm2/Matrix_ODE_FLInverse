@@ -25,6 +25,8 @@ class couplematrix {
     matcd a2() { return m_a2; }
     vecint ll() { return m_ll; }
     veccd vs() { return m_vs; }
+    std::complex<double> vs(int idx) { return m_vs(idx); }
+    veccd vr() { return m_vr; }
     veccd ww() { return m_ww; }
     const int &nelem() const { return m_nelem; }
     int nelem2() { return m_nelem2; }
