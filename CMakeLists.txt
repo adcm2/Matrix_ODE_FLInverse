@@ -61,6 +61,7 @@ FetchContent_MakeAvailable(FFTWpp)
 # FetchContent_MakeAvailable(lapack)
 
 # blas and lapack
+find_package(OpenMP REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 # find_package(LAPACKE REQUIRED)

@@ -1,12 +1,13 @@
-// #ifndef EIGEN_DONT_PARALLELIZE
-// #define EIGEN_DONT_PARALLELIZE
-// #endif
+#ifndef EIGEN_DONT_PARALLELIZE
+#define EIGEN_DONT_PARALLELIZE
+#endif
 // #ifndef EIGEN_USE_BLAS
 // #define EIGEN_USE_BLAS
 // #endif
 // #ifndef EIGEN_USE_LAPACKE_STRICT
 // #define EIGEN_USE_LAPACKE_STRICT
 // #endif
+#include <math.h>
 #include <omp.h>
 #include <stdio.h>
 
@@ -24,24 +25,11 @@
 #include "matrix_read.h"
 // #include "postprocess.h"
 #include "postprocessfunctions.h"
+#include "spectra_central.h"
 
 using namespace std::chrono;
 int
 main() {
-    std::vector<double> myval, myval2;
-    myval.push_back(1.0);
-    myval.push_back(2.0);
-    myval.push_back(2.1);
-    myval2.resize(myval.size());
-    myval2[0] = 1.0;
-    myval2[1] = 2.0;
-    myval2[2] = 1.0;
-    typedef std::vector<double>::iterator ptr;
-    filterclass::hann myhann(0.0, 2.5, 0.1);
-    myhann.filter(myval.begin(), myval.end(), myval2.begin());
-
-    std::cout << myval2[0] << " " << myval2[1] << " " << myval2[2] << std::endl;
-
     std::string filePath;
     std::string filePath2;
     std::string filePath3;
@@ -51,10 +39,17 @@ main() {
     filePath = pathstring + "/matrix.bin";
     filePath2 = pathstring + "/vector_sr.bin";
     filePath3 = pathstring + "/freq_sph.bin";
+    auto start = high_resolution_clock::now();
     couplematrix mydat(filePath, filePath2, filePath3);
-    std::cout << mydat.nelem() << std::endl;
-    std::cout << mydat.a0()(1, 1) << std::endl;
+    // std::cout << mydat.nelem() << std::endl;
+    // std::cout << mydat.a0()(1, 1) << std::endl;
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
 
+    std::cout << "Time taken to read in matrices: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    start = high_resolution_clock::now();
     double f1 = 0.1;       // minimum (mHz)
     double f2 = 1.0;       // maximum (mHz)
     double dt = 20.0;      // timestep (s)
@@ -64,7 +59,74 @@ main() {
     double t1 = 0.0;       // cosine bell start (hrs)
     double t2 = 512.0;     // cosine bell stop (hrs)
     freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2);
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    std::cout << "Time taken to get frequency setup: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
 
+    // using the new functions for the spectra evaluation
+    start = high_resolution_clock::now();
+    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> rawspec;
+    rawspec = modespectrafunctions::rawspectra(myfreq, mydat);
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    std::cout << "Time taken to do raw calculation: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
+    // finding seismogram
+    start = high_resolution_clock::now();
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> raw_seis;
+    raw_seis =
+        modespectrafunctions::calc_seismogram(rawspec, myfreq, mydat.nelem2());
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    std::cout << "Time taken to compute seismogram: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
+    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
+        fin_spec;
+    std::cout << "The value of nt0 is: " << myfreq.nt0() << std::endl;
+    start = high_resolution_clock::now();
+    fin_spec =
+        modespectrafunctions::calc_fspectra(raw_seis, myfreq, mydat.nelem2());
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    std::cout << "Time taken to compute final spectra: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    std::cout << "ep: " << std::format("{}", myfreq.ep()) << std::endl;
+    std::cout << "df2: " << std::format("{}", myfreq.df2()) << std::endl;
+
+    // outputting to files
+    std::ofstream myfile;
+    std::string outputfilebase = "fspectra.r";
+    std::string outputfilename;
+    for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
+        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out";
+
+        myfile.open(outputfilename, std::ios::trunc);
+        for (int idx = myfreq.i12(); idx < myfreq.i22(); ++idx) {
+            myfile << std::setprecision(17) << myfreq.f2(idx) * 1000 << ";"
+                   << fin_spec(oidx, idx).real() << ";"
+                   << fin_spec(oidx, idx).imag() << ";"
+                   << std::abs(fin_spec(oidx, idx)) << std::endl;
+        }
+        myfile.close();
+    }
+    outputfilebase = "tspectra.r";
+    for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
+        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out";
+
+        myfile.open(outputfilename, std::ios::trunc);
+        for (int idx = 0; idx < myfreq.nt(); ++idx) {
+            // double tval = idx * mymode.dt / 3600;
+            // if (tval < tout){
+            myfile << std::setprecision(17) << myfreq.t(idx) << ";"
+                   << raw_seis(oidx, idx) << std::endl;
+        }
+        myfile.close();
+    }
+
+    std::cout << "df0 is: " << myfreq.df0() << std::endl;
+    return 0;
     // int n = 5000;
     // int m;
     // std::cin >> m;
@@ -79,7 +141,6 @@ main() {
     //     vecn.push_back(static_cast<double>(i) / static_cast<double>(m));
     // }
 
-    auto start = high_resolution_clock::now();
     // lusolve.compute(ww);
     // x = lusolve.solve(ll);
     // y = x;
@@ -98,17 +159,11 @@ main() {
     //         }
     //         // printf("Hello from process: %d\n", omp_get_thread_num());
     //     }
-    auto stop = high_resolution_clock::now();
 
     // Get duration. Substart timepoints to
     // get duration. To cast it to proper unit
     // use duration cast method
-    auto duration = duration_cast<microseconds>(stop - start);
 
-    std::cout << "Time taken by function: " << duration.count() / 1000000.0
-              << " seconds" << std::endl;
-
-    return 0;
     // #pragma omp parallel
     //     { printf("Hello from process: %d\n", omp_get_thread_num()); }
     // #pragma omp parallel
@@ -161,4 +216,18 @@ main() {
     // std::vector<int> validx;
     // validx = randomfunctions::findindex(0.002, 0.0003, ll, ww);
     // std::cout << validx[0] << " " << validx[1] << std::endl;
+    // std::vector<double> myval, myval2;
+    // myval.push_back(1.0);
+    // myval.push_back(2.0);
+    // myval.push_back(2.1);
+    // myval2.resize(myval.size());
+    // myval2[0] = 1.0;
+    // myval2[1] = 2.0;
+    // myval2[2] = 1.0;
+    // typedef std::vector<double>::iterator ptr;
+    // filterclass::hann myhann(0.0, 2.5, 0.1);
+    // myhann.filter(myval.begin(), myval.end(), myval2.begin());
+
+    // std::cout << myval2[0] << " " << myval2[1] << " " << myval2[2] <<
+    // std::endl;
 }

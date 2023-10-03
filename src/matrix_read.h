@@ -20,17 +20,36 @@ class couplematrix {
     couplematrix(std::string, std::string, std::string);
 
     // access
-    const matcd &a0() const { return m_a0; }
-    matcd a1() { return m_a1; }
-    matcd a2() { return m_a2; }
-    vecint ll() { return m_ll; }
-    veccd vs() { return m_vs; }
-    std::complex<double> vs(int idx) { return m_vs(idx); }
-    veccd vr() { return m_vr; }
-    veccd ww() { return m_ww; }
-    const int &nelem() const { return m_nelem; }
-    int nelem2() { return m_nelem2; }
-    int mtot() { return m_mtot; }
+    //     const vecint& ll()const { return m_ll; }
+
+    // const veccd& ww() const{ return m_ww; }
+    // const veccd& vs()const { return m_vs; }
+
+    //     const matcd &a0() const { return m_a0; }
+    //     const matcd&  a1() const { return m_a1; }
+    //     const matcd& a2() const{ return m_a2; }
+    //     const matcd& vr() const{ return m_vr; }
+
+    //     const std::complex<double>& vs(int idx) const{ return m_vs(idx); }
+
+    //     const int &nelem() const { return m_nelem; }
+    //     const int& nelem2() const{ return m_nelem2; }
+    //     const int& mtot() const{ return m_mtot; }
+    vecint ll() const { return m_ll; }
+
+    veccd ww() const { return m_ww; }
+    veccd vs() const { return m_vs; }
+
+    matcd a0() const { return m_a0; }
+    matcd a1() const { return m_a1; }
+    matcd a2() const { return m_a2; }
+    matcd vr() const { return m_vr; }
+
+    std::complex<double> vs(int idx) const { return m_vs(idx); }
+
+    int nelem() const { return m_nelem; }
+    int nelem2() const { return m_nelem2; }
+    int mtot() const { return m_mtot; }
 
    private:
     vecint m_ll;

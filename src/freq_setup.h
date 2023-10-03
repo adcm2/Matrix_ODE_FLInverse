@@ -12,6 +12,8 @@ class freq_setup {
 
     // double functions
     double f(int idx) const { return static_cast<double>(idx) * m_df; }
+    double f0(int idx) const { return static_cast<double>(idx) * m_df0; }
+    double f2(int idx) const { return static_cast<double>(idx) * m_df2; }
     double f1() const { return m_f1; }
     double f2() const { return m_f2; }
     double tout() const { return m_tout; }
@@ -73,6 +75,7 @@ freq_setup::freq_setup(double f1, double f2, double dt, double tout, double df0,
     int mex = 5;
     int qex = 4;
     m_ep = mex / m_tout;
+
     // David's version
     m_df = m_ep / (6.28318530718 * qex);
 
@@ -86,7 +89,7 @@ freq_setup::freq_setup(double f1, double f2, double dt, double tout, double df0,
 
     // finding new values of f1 and f2 and corresponding integer numbers
     m_i1 = std::max(static_cast<int>(std::floor(m_f1 / m_df)), 0);
-    m_i2 = static_cast<int>(std::floor(m_f2 / m_df)) + 2;
+    m_i2 = std::min(static_cast<int>(std::floor(m_f2 / m_df)) + 2, m_nt);
     m_f1 = (m_i1 - 1) * m_df;
     m_f2 = (m_i2 - 1) * m_df;
 
@@ -109,7 +112,7 @@ freq_setup::freq_setup(double f1, double f2, double dt, double tout, double df0,
     }
 
     m_df2 = 1.0 / (m_nt0 * m_dt);
-    m_i12 = std::max(static_cast<int>(floor(m_f1 / m_df2)), 1);
+    m_i12 = std::max(static_cast<int>(floor(m_f1 / m_df2)) - 1, 1);
     m_i22 = static_cast<int>(floor(m_f2 / m_df2)) + 1;
 };
 #endif

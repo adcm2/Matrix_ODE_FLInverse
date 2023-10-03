@@ -34,9 +34,10 @@ rawfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
     auto inview = FFTWpp::MakeDataView1D(inFL);
     auto outview = FFTWpp::MakeDataView1D(outFL);
     auto fftplan = FFTWpp::Plan(inview, outview, flag);
+
     for (int idx = 0; idx < rawspec.rows(); ++idx) {
         // auto itinp = .begin();
-        for (int idx2 = 0; idx2 < nt / 2 + 1; ++idx) {
+        for (int idx2 = 0; idx2 < nt / 2 + 1; ++idx2) {
             inFL[idx2] = rawspec(idx, idx2);
         }
 
@@ -55,7 +56,7 @@ rawfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
 Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
 rawtime2freq(
     const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> &rawspec,
-    const int &nt) {   // do Fourier transform
+    const int &nt, double dt) {   // do Fourier transform
 
     // for FFT
     RealVector inFL(nt);
@@ -70,12 +71,12 @@ rawtime2freq(
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> tmp(
         rawspec.rows(), nt / 2 + 1);
     for (int idx = 0; idx < rawspec.rows(); ++idx) {
-        for (int idx2 = 0; idx2 < nt; ++idx) {
+        for (int idx2 = 0; idx2 < nt; ++idx2) {
             inFL[idx2] = rawspec(idx, idx2);
         }
         fftplan.Execute();
         for (int idx2 = 0; idx2 < nt / 2 + 1; ++idx2) {
-            tmp(idx, idx2) = outFL[idx2];
+            tmp(idx, idx2) = outFL[idx2] * dt;
         }
     }
 
@@ -109,7 +110,7 @@ filtfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
     // undo effect of frequency shift
     for (int idx = 0; idx < nt; ++idx) {
         if (dt * idx < tout) {
-            tmp.block(0, idx, nrow, 1) *= exp(ep * dt * idx);
+            tmp.block(0, idx, nrow, 1) *= exp(ep * dt * idx) * df;
         }
     }
     return tmp;
@@ -118,7 +119,7 @@ filtfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
 Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
 simptime2freq(
     const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> &rawspec,
-    const double dt, const double tout) {   // do Fourier transform
+    const double dt, const double t2) {   // do Fourier transform
 
     // declarations
     int nrow = rawspec.rows();
@@ -131,11 +132,11 @@ simptime2freq(
     tmpraw = rawspec;
     for (int idx = 0; idx < nt; ++idx) {
         tmpraw.block(0, idx, nrow, 1) *=
-            filters::hannref(idx * dt, 0.0, tout, 0.5);
+            filters::hannref(idx * dt, 0.0, t2, 0.5);
     }
 
     // do conversion
-    tmp = rawtime2freq(tmpraw, nt);
+    tmp = rawtime2freq(tmpraw, nt, dt);
 
     // return
     return tmp;
@@ -154,11 +155,10 @@ fulltime2freq(
             nrow, calcdata.nt0());
 
     // filter
-    // tmpraw = rawspec;
     tmpraw.block(0, 0, nrow, calcdata.nt()) = rawspec;
 
     // do conversion
-    tmp = simptime2freq(tmpraw, calcdata.dt(), calcdata.tout());
+    tmp = simptime2freq(tmpraw, calcdata.dt(), calcdata.t2());
 
     // return
     return tmp;
