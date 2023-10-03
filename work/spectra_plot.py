@@ -9,6 +9,10 @@ plt.rcParams.update({"font.size": 24})
 
 f = plt.figure()
 
+print(len(d))
+print(len(dp))
+print(d[0:5,0])
+print(dp[0:5,0])
 # plt.subplot(3,1,1)
 # plt.plot(d[:, 0], d[:, 3], "k")
 # plt.plot(dp[:, 0], dp[:, 3], "r")

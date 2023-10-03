@@ -100,7 +100,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata) {
 
             //////////////////////////////////////////////////////////////////////////////////
 
-            solver.setTolerance(1.0 * std::pow(10.0, -12));
+            solver.setTolerance(1.0 * std::pow(10.0, -6));
             solver.compute(A);
             solver.preconditioner().setblock(A, vecidx[0], vecidx[1]);
 

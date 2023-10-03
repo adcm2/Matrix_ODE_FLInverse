@@ -51,7 +51,7 @@ main() {
 
     start = high_resolution_clock::now();
     double f1 = 0.1;       // minimum (mHz)
-    double f2 = 1.0;       // maximum (mHz)
+    double f2 = 1.5;       // maximum (mHz)
     double dt = 20.0;      // timestep (s)
     double tout = 512.0;   // time length (hrs)
     double df0 = 0.05;     // frequency step (mHz)
@@ -72,6 +72,7 @@ main() {
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Time taken to do raw calculation: "
               << duration.count() / 1000000.0 << " seconds" << std::endl;
+
     // finding seismogram
     start = high_resolution_clock::now();
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> raw_seis;
@@ -81,9 +82,11 @@ main() {
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Time taken to compute seismogram: "
               << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    // std::cout << "The value of nt0 is: " << myfreq.nt0() << std::endl;
+
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
         fin_spec;
-    std::cout << "The value of nt0 is: " << myfreq.nt0() << std::endl;
     start = high_resolution_clock::now();
     fin_spec =
         modespectrafunctions::calc_fspectra(raw_seis, myfreq, mydat.nelem2());
@@ -92,18 +95,18 @@ main() {
     std::cout << "Time taken to compute final spectra: "
               << duration.count() / 1000000.0 << " seconds" << std::endl;
 
-    std::cout << "ep: " << std::format("{}", myfreq.ep()) << std::endl;
-    std::cout << "df2: " << std::format("{}", myfreq.df2()) << std::endl;
-
     // outputting to files
     std::ofstream myfile;
     std::string outputfilebase = "fspectra.r";
     std::string outputfilename;
+
+    // spectra
+    start = high_resolution_clock::now();
     for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
         outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out";
 
         myfile.open(outputfilename, std::ios::trunc);
-        for (int idx = myfreq.i12(); idx < myfreq.i22(); ++idx) {
+        for (int idx = myfreq.i12() + 1; idx < myfreq.i22(); ++idx) {
             myfile << std::setprecision(17) << myfreq.f2(idx) * 1000 << ";"
                    << fin_spec(oidx, idx).real() << ";"
                    << fin_spec(oidx, idx).imag() << ";"
@@ -111,6 +114,14 @@ main() {
         }
         myfile.close();
     }
+
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    std::cout << "Time taken to output spectra: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    // seismogram
+    start = high_resolution_clock::now();
     outputfilebase = "tspectra.r";
     for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
         outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out";
@@ -118,14 +129,19 @@ main() {
         myfile.open(outputfilename, std::ios::trunc);
         for (int idx = 0; idx < myfreq.nt(); ++idx) {
             // double tval = idx * mymode.dt / 3600;
-            // if (tval < tout){
-            myfile << std::setprecision(17) << myfreq.t(idx) << ";"
-                   << raw_seis(oidx, idx) << std::endl;
+            if (myfreq.t(idx) < myfreq.tout()) {
+                myfile << std::setprecision(17) << myfreq.t(idx) << ";"
+                       << raw_seis(oidx, idx) << std::endl;
+            }
         }
         myfile.close();
     }
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    std::cout << "Time taken to output seismograms: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
 
-    std::cout << "df0 is: " << myfreq.df0() << std::endl;
+    // std::cout << "df0 is: " << myfreq.df0() << std::endl;
     return 0;
     // int n = 5000;
     // int m;
