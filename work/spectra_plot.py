@@ -2,8 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-d = np.loadtxt("spectra_test.STAT1.Z")
-dp = np.loadtxt("fspectra.r1.out", delimiter=";")
+# d = np.loadtxt("spectra_test.STAT1.Z")
+# dp = np.loadtxt("fspectra.r1.out", delimiter=";")
+# d = np.loadtxt("spectra_test.STAT1.N")
+# dp = np.loadtxt("fspectra.r2.out", delimiter=";")
+d = np.loadtxt("spectra_test.STAT1.E")
+dp = np.loadtxt("fspectra.r3.out", delimiter=";")
 
 plt.rcParams.update({"font.size": 24})
 

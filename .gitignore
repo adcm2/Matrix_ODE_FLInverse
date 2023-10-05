@@ -6,3 +6,4 @@
 **/*.STAT1.*
 **/*.out
 **/data
+**/storedata

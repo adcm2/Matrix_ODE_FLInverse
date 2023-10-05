@@ -28,7 +28,7 @@ namespace modespectrafunctions {
 using complexd = std::complex<double>;
 
 Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
-rawspectra(const freq_setup& calcdata, const couplematrix& matdata) {
+rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double soltol) {
     // indices
     auto i1 = calcdata.i1();
     auto i2 = calcdata.i2();
@@ -100,7 +100,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata) {
 
             //////////////////////////////////////////////////////////////////////////////////
 
-            solver.setTolerance(1.0 * std::pow(10.0, -6));
+            solver.setTolerance(soltol);
             solver.compute(A);
             solver.preconditioner().setblock(A, vecidx[0], vecidx[1]);
 

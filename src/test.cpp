@@ -50,14 +50,24 @@ main() {
               << duration.count() / 1000000.0 << " seconds" << std::endl;
 
     start = high_resolution_clock::now();
-    double f1 = 0.1;       // minimum (mHz)
-    double f2 = 1.5;       // maximum (mHz)
-    double dt = 20.0;      // timestep (s)
-    double tout = 512.0;   // time length (hrs)
-    double df0 = 0.05;     // frequency step (mHz)
-    double wtb = 0.05;     // width of target block (mHz)
-    double t1 = 0.0;       // cosine bell start (hrs)
-    double t2 = 512.0;     // cosine bell stop (hrs)
+    // double f1 = 0.1;       // minimum (mHz)
+    // double f2 = 1.5;       // maximum (mHz)
+    // double dt = 20.0;      // timestep (s)
+    // double tout = 512.0;   // time length (hrs)
+    // double df0 = 0.05;     // frequency step (mHz)
+    // double wtb = 0.05;     // width of target block (mHz)
+    // double t1 = 0.0;       // cosine bell start (hrs)
+    // double t2 = 512.0;     // cosine bell stop (hrs)
+    double f1;
+    double f2;
+    double dt;
+    double tout;
+    double df0;
+    double wtb;
+    double t1;
+    double t2;
+    double soltol;
+    std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol;
     freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2);
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
@@ -67,7 +77,7 @@ main() {
     // using the new functions for the spectra evaluation
     start = high_resolution_clock::now();
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> rawspec;
-    rawspec = modespectrafunctions::rawspectra(myfreq, mydat);
+    rawspec = modespectrafunctions::rawspectra(myfreq, mydat, soltol);
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Time taken to do raw calculation: "
