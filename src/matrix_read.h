@@ -74,25 +74,33 @@ couplematrix::couplematrix(std::string filepath, std::string filePath2,
 
     // find the length of the file
     infile.seekg(0, std::ios::end);
-    int file_size = infile.tellg();
+    // long int file_size = infile.tellg();
+    std::size_t file_size = infile.tellg();
     infile.seekg(0, infile.beg);   // reset back to beginning
 
     // finding number of elements
     m_nelem = sqrt((file_size - 24) / (3 * 16));
+
+std::cout << file_size << std::endl;
+    std::cout << m_nelem << std::endl;
     // resizing matrices using size found
     m_a0.resize(m_nelem, m_nelem);
+    std::cout << m_nelem << std::endl;
     m_a1.resize(m_nelem, m_nelem);
     m_a2.resize(m_nelem, m_nelem);
 
     // placeholder byte size 4, ie same as integer
-    int i, matbytes;
+    int i;
+    // long int matbytes;
+    std::size_t matbytes;
     infile.read(reinterpret_cast<char *>(&i),
                 sizeof(i));   // head placeholder
     double matbreak;          // placeholder between matrices
 
     // size of matrices in bytes
+    // matbytes = static_cast<long int>(m_nelem) * static_cast<long int>(m_nelem) * 16;
     matbytes = m_nelem * m_nelem * 16;
-
+std::cout << matbytes << std::endl;
     // read matrices
     infile.read(reinterpret_cast<char *>(m_a0.data()), matbytes);
     infile.read(reinterpret_cast<char *>(&matbreak), 8);   // placeholder
@@ -121,11 +129,13 @@ couplematrix::couplematrix(std::string filepath, std::string filePath2,
 
     // find the length of the file
     vecfile.seekg(0, std::ios::end);
-    int file_size2 = vecfile.tellg();
+    std::size_t file_size2 = vecfile.tellg();
     vecfile.seekg(0, vecfile.beg);   // reset back to beginning
 
     // finding number of elements
-    m_nelem2 = (file_size2 - 16) / (16 * m_nelem) - 1;
+    m_nelem2 = (static_cast<int>(file_size2) - 16) / (16 * m_nelem) - 1;
+    std::cout << file_size2 << std::endl;
+    std::cout << m_nelem2 << std::endl;
     // resizing matrices using size found
     m_vs.resize(m_nelem);
     m_vr.resize(m_nelem, m_nelem2);
@@ -163,7 +173,7 @@ couplematrix::couplematrix(std::string filepath, std::string filePath2,
 
     // find the length of the file
     freqfile.seekg(0, std::ios::end);
-    int file_size3 = freqfile.tellg();
+    std::size_t file_size3 = freqfile.tellg();
     freqfile.seekg(0, freqfile.beg);   // reset back to beginning
 
     // finding number of elements
@@ -174,7 +184,7 @@ couplematrix::couplematrix(std::string filepath, std::string filePath2,
 
     // placeholder
     freqfile.read(reinterpret_cast<char *>(&i), sizeof(i));   // head
-
+    std::cout << "Hello\n";
     // read matrices
     freqfile.read(reinterpret_cast<char *>(m_ww.data()), 16 * m_mtot);
     freqfile.read(reinterpret_cast<char *>(&i), sizeof(i));   // placeholder

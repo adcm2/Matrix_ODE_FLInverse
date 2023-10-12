@@ -43,14 +43,23 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
     double oneovertwopi = 1.0 / (2.0 * 3.1415926535897932);
     std::complex<double> imep =
         static_cast<std::complex<double> >(calcdata.ep());
-    // coupling matrix
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> A(
         matdata.nelem(), matdata.nelem());
+        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> mat_a0(
+        matdata.nelem(), matdata.nelem()), mat_a1(
+        matdata.nelem(), matdata.nelem()), mat_a2(
+        matdata.nelem(), matdata.nelem()); 
 //////////////////////////////////////////////////////////////////////////////////
-#pragma omp parallel private(A)
+#pragma omp parallel private(A, mat_a0, mat_a1, mat_a2) num_threads(32)
     {
-#pragma omp for
+        mat_a0 = matdata.a0();
+        mat_a1 = matdata.a1();
+        mat_a2 = matdata.a2();
+
+#pragma omp for schedule(dynamic,10)
         for (int idx = i1; idx < i2; ++idx) {
+            // coupling matrix
+    
             // tmp(0, idx) = calcdata.w(idx) * oneovertwopi;   // frequency
 
             // run through all frequencies and if between f1 and f2 compute
@@ -63,7 +72,8 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
             //////////////////////////////////////////////////////////////////////////////////
 
             // declare value of A
-            A = matdata.a0() + winp * matdata.a1() + winp * winp * matdata.a2();
+            // A = matdata.a0() + winp * matdata.a1() + winp * winp * matdata.a2();
+            A = mat_a0 + winp * mat_a1 + winp * winp * mat_a2;
 
             // include diagonal component
             for (int idx = 0; idx < A.rows(); ++idx) {
@@ -114,7 +124,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
                 -winp * winp * matdata.vr().transpose() * vlhs;
             // };
         };
-    }
+    };
     return tmp;
 };
 

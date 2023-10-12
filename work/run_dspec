@@ -5,13 +5,13 @@ njob=32
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.1
-fmax=3.5
+fmax=1.0
 
 # time step (seconds)
 tstep=20
 
 # time length (hours)
-tend=512
+tend=256
 
 # frequency step (mHz)
 fstep=0.05
@@ -21,7 +21,7 @@ fblock=0.05
 
 # start and end times for Cosine Bell window (hours)
 wstart=0
-wend=512
+wend=256
 
 # source file
 source="dspec.source"

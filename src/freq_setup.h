@@ -8,7 +8,7 @@
 class freq_setup {
    public:
     // constructor
-    freq_setup(double, double, double, double, double, double, double, double);
+    freq_setup(double, double, double, double, double, double, double, double, int);
 
     // double functions
     double f(int idx) const { return static_cast<double>(idx) * m_df; }
@@ -51,7 +51,7 @@ class freq_setup {
 };
 
 freq_setup::freq_setup(double f1, double f2, double dt, double tout, double df0,
-                       double wtb, double t1, double t2)
+                       double wtb, double t1, double t2, int qex)
     : m_f1{f1 / 1000.0},
       m_f2{f2 / 1000.0},
       m_dt{dt},
@@ -73,7 +73,7 @@ freq_setup::freq_setup(double f1, double f2, double dt, double tout, double df0,
 
     // multipliers for epsilon in inverse FL and q (need to clarify this)
     int mex = 5;
-    int qex = 4;
+    // int qex = 4;
     m_ep = mex / m_tout;
 
     // David's version
@@ -112,7 +112,7 @@ freq_setup::freq_setup(double f1, double f2, double dt, double tout, double df0,
     }
 
     m_df2 = 1.0 / (m_nt0 * m_dt);
-    m_i12 = std::max(static_cast<int>(floor(m_f1 / m_df2)) - 1, 1);
-    m_i22 = static_cast<int>(floor(m_f2 / m_df2)) + 1;
+    m_i12 = std::max(static_cast<int>(floor(m_f1 / m_df2)) - 1, 0);
+    m_i22 = static_cast<int>(floor(m_f2 / m_df2))+1;
 };
 #endif

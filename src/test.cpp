@@ -40,7 +40,9 @@ main() {
     filePath2 = pathstring + "/vector_sr.bin";
     filePath3 = pathstring + "/freq_sph.bin";
     auto start = high_resolution_clock::now();
+    std::cout << "Hello\n";
     couplematrix mydat(filePath, filePath2, filePath3);
+    std::cout << "Hello\n";
     // std::cout << mydat.nelem() << std::endl;
     // std::cout << mydat.a0()(1, 1) << std::endl;
     auto stop = high_resolution_clock::now();
@@ -67,8 +69,9 @@ main() {
     double t1;
     double t2;
     double soltol;
-    std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol;
-    freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2);
+    int qex;
+    std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol >>qex;
+    freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2,qex);
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Time taken to get frequency setup: "
@@ -113,10 +116,10 @@ main() {
     // spectra
     start = high_resolution_clock::now();
     for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
-        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out";
+        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out" + ".q" + std::to_string(qex);
 
         myfile.open(outputfilename, std::ios::trunc);
-        for (int idx = myfreq.i12() + 1; idx < myfreq.i22(); ++idx) {
+        for (int idx = myfreq.i12(); idx < myfreq.i22(); ++idx) {
             myfile << std::setprecision(17) << myfreq.f2(idx) * 1000 << ";"
                    << fin_spec(oidx, idx).real() << ";"
                    << fin_spec(oidx, idx).imag() << ";"
