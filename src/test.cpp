@@ -1,6 +1,6 @@
-#ifndef EIGEN_DONT_PARALLELIZE
-#define EIGEN_DONT_PARALLELIZE
-#endif
+// #ifndef EIGEN_DONT_PARALLELIZE
+// #define EIGEN_DONT_PARALLELIZE
+// #endif
 // #ifndef EIGEN_USE_BLAS
 // #define EIGEN_USE_BLAS
 // #endif
@@ -72,6 +72,10 @@ main() {
     int qex;
     std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol >>qex;
     freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2,qex);
+
+    //how many points
+    std::cout << "Number of points evaluated at is: " << myfreq.i2() - myfreq.i1() << std::endl;
+
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Time taken to get frequency setup: "

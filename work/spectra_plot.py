@@ -5,10 +5,10 @@ import math
 # d = np.loadtxt("spectra_test.STAT1.Z")
 # dp = np.loadtxt("fspectra.r1.out.q4", delimiter=";")
 # dp = np.loadtxt("fspectra.r1.out.q4", delimiter=";")
-d = np.loadtxt("spectra_test.STAT1.N")
-dp = np.loadtxt("fspectra.r2.out.q4", delimiter=";")
-# d = np.loadtxt("spectra_test.STAT1.E")
-# dp = np.loadtxt("fspectra.r3.out", delimiter=";")
+# d = np.loadtxt("spectra_test.STAT1.N")
+# dp = np.loadtxt("fspectra.r2.out.q4", delimiter=";")
+d = np.loadtxt("spectra_test.STAT1.E")
+dp = np.loadtxt("fspectra.r3.out.q4", delimiter=";")
 
 plt.rcParams.update({"font.size": 24})
 

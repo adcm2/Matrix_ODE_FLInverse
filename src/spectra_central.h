@@ -49,12 +49,13 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
         matdata.nelem(), matdata.nelem()), mat_a1(
         matdata.nelem(), matdata.nelem()), mat_a2(
         matdata.nelem(), matdata.nelem()); 
-//////////////////////////////////////////////////////////////////////////////////
-#pragma omp parallel private(A, mat_a0, mat_a1, mat_a2) num_threads(32)
-    {
         mat_a0 = matdata.a0();
         mat_a1 = matdata.a1();
         mat_a2 = matdata.a2();
+        // shared(mat_a0, mat_a1, mat_a2) 
+//////////////////////////////////////////////////////////////////////////////////
+#pragma omp parallel private(A) shared(mat_a0, mat_a1, mat_a2) 
+    {
 
 #pragma omp for schedule(dynamic,10)
         for (int idx = i1; idx < i2; ++idx) {
@@ -99,6 +100,11 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
             incond.compute(A);
             incond.setblock(A, vecidx[0], vecidx[1]);
             x0 = incond.solve(vrhs);
+
+            //LU decomposition
+            // Eigen::FullPivLU<Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> > fsolve;
+            // fsolve.compute(A);
+            // vlhs = fsolve.solve(vrhs);
 
             //////////////////////////////////////////////////////////////////////////////////
 
