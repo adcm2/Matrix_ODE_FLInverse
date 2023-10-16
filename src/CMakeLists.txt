@@ -21,3 +21,13 @@ message(STATUS "FFTW LIBRARIES: " ${FFTW_LIBRARIES})
 target_link_libraries(test PUBLIC ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 # target_link_libraries(test PUBLIC lapack)
 # target_link_libraries(test PUBLIC ${LAPACKE_LIBRARIES})
+
+add_executable(testeig testeigsolve.cpp)   
+target_link_libraries(testeig PUBLIC Eigen3::Eigen)
+target_link_libraries(testeig PUBLIC FFTWpp)
+target_link_libraries(testeig PUBLIC OpenMP::OpenMP_CXX)
+
+message(STATUS "BLAS VENDOR:    " ${BLA_VENDOR})
+message(STATUS "BLAS LIBRARIES: " ${BLAS_LIBRARIES})
+message(STATUS "FFTW LIBRARIES: " ${FFTW_LIBRARIES})
+target_link_libraries(testeig PUBLIC ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
