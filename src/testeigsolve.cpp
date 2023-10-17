@@ -74,13 +74,16 @@ main() {
 
     //eigensolver
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> fRHS;
-    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> a0, a1, a2, a2inv, Mlarge;
+    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> a0, a1, a2, a2inv, Mlarge, vecref, vecf, eiginv, vecr;
     start = high_resolution_clock::now();
     a0 = mydat.a0();
     a1 = mydat.a1();
     a2 = mydat.a2();
 // #pragma omp parallel
 //     {
+
+    ////////////////////////////////////////////////////////////////////////// 
+    // Form M
     Mlarge.resize(mydat.nelem() * 2,mydat.nelem() * 2 );
     std::cout << Mlarge.rows() << " " << Mlarge.cols() << std::endl;
     Mlarge.block(0,0,mydat.nelem(), mydat.nelem()) = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>::Zero(mydat.nelem(), mydat.nelem());
@@ -97,7 +100,16 @@ main() {
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Inverse time: "
               << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    ////////////////////////////////////////////////////////////////////////// 
+    // Form RHS
+    fRHS.resize(2 * mydat.nelem());
+    fRHS.block(0,0,mydat.nelem(), 1) = Eigen::VectorXcd::Zero(mydat.nelem());
+    fRHS.block(mydat.nelem(), 0, mydat.nelem(), 1) = a2inv * mydat.vs();
     
+    ////////////////////////////////////////////////////////////////////////// 
+    //eigensolve
+
     start = high_resolution_clock::now();
     Eigen::ComplexEigenSolver<Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> > msolve;
     
@@ -106,10 +118,26 @@ main() {
     // std::cout << Mlarge.rows() << " " << Mlarge.cols() << std::endl;
     Eigen::Vector< std::complex<double>, Eigen::Dynamic>  eig_values = msolve.eigenvalues();
     Eigen::Matrix< std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>  eig_vecs = msolve.eigenvectors();
+    
+    
+    
+    
+    
+    
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Eigensolution time: "
               << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    ////////////////////////////////////////////////////////////////////////// 
+    //solution
+    vecr.resize(2*mydat.nelem(), mydat.vr().cols());
+    vecr.block(0,0,mydat.nelem(), mydat.vr().cols()) = Eigen::MatrixXcd::Zero(mydat.nelem(), mydat.vr().cols());
+    vecr.block(mydat.nelem(),0,mydat.nelem(), mydat.vr().cols()) = mydat.vr();
+    vecref = vecr.transpose() * Mlarge * eig_vecs;
+    eiginv = eig_vecs.inverse();
+    vecf = eiginv * fRHS;
+
     // }
 return 0;
 }

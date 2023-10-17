@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# export OMP_NUM_THREADS=16
+export OMP_NUM_THREADS=32
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.1
-fmax=3.0
+fmax=1.0
 
 # time step (seconds)
 tstep=20
@@ -21,7 +21,7 @@ fblock=0.05
 # start and end times for Cosine Bell window (hours)
 wstart=0
 wend=256
-soltol=0.000001
+soltol=0.000000001
 qex=4;
 
 ../build/bin/test << !
