@@ -10,7 +10,7 @@ fmax=1.0
 tstep=20
 
 # time length (hours)
-tend=256
+tend=25
 
 # frequency step (mHz)
 fstep=0.05
@@ -20,7 +20,7 @@ fblock=0.05
 
 # start and end times for Cosine Bell window (hours)
 wstart=0
-wend=256
+wend=25
 soltol=0.000000001
 qex=4;
 

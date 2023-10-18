@@ -74,7 +74,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
 
             // declare value of A
             // A = matdata.a0() + winp * matdata.a1() + winp * winp * matdata.a2();
-            A = mat_a0 + winp * mat_a1 + winp * winp * mat_a2;
+            A = mat_a0 +  winp * mat_a1 + winp * winp * mat_a2;
 
             // include diagonal component
             for (int idx = 0; idx < A.rows(); ++idx) {
@@ -138,19 +138,9 @@ Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
 calc_seismogram(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
                                     Eigen::Dynamic>& vec_rawspec,
                 const freq_setup& calcdata, const int nelem2) {
-    // filterclass::hann freqfilter(calcdata.f1(), calcdata.f2(), 0.1);
     // declare filtered matrix
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
         filtspec(nelem2, calcdata.nt() / 2 + 1);
-    // for (int idx = 0; idx < calcdata.nt()/2+1; ++idx) {
-    //     filtspec.block(0,idx,calcdata.nelem2(), 1) =
-    //     vec_rawspec.block(1,idx,calcdata.nelem2(), 1) *
-    //     filters::hannref(calcdata.f(idx),
-    //                                                       calcdata.f1(),
-    //                                                       calcdata.f2(),
-    //                                                       0.1);
-
-    // }
 
     // take FT into time domain
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> seisout(
@@ -171,9 +161,7 @@ calc_fspectra(
     double twopi = 2.0 * 3.1415926535897932;
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> outspec(
         nelem2, calcdata.nt0() / 2 + 1);
-    // for (int idx = 0; idx < calcdata.nt0(); ++idx){
-    //     outspec(0,idx) = calcdata.f0(idx) * twopi;
-    // }
+
     outspec = processfunctions::fulltime2freq(seisout, calcdata);
     return outspec;
 }
