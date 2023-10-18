@@ -27,13 +27,7 @@ class PostProcessBase {
     /* actual*/
     PostProcessBase(const int& len_inp, const int& len_out)
         : m_isinitialized(true), leninp(len_inp), lenout(outlen) {
-        inFL.resize(len_inp);
-        outFL.resize(len_out);
-        // Form the plans
-        flag = FFTWpp::Measure | FFTWpp::Estimate;
-        inview = FFTWpp::MakeDataView1D(inFL);
-        outview = FFTWpp::MakeDataView1D(outFL);
-        fftplan = FFTWpp::Plan(inview, outview, flag);
+        
     }
 
     // template <typename INIT, typename FIN>
