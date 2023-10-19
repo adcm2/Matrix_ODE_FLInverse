@@ -5,7 +5,7 @@ njob=16
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.1
-fmax=2.5
+fmax=3.0
 
 # time step (seconds)
 tstep=20

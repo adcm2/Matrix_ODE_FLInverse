@@ -80,6 +80,7 @@
         "typeindex": "cpp",
         "*.ipp": "cpp",
         "filesystem": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "*.inc": "cpp"
     }
 }

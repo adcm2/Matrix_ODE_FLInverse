@@ -123,8 +123,8 @@ main() {
 
     // bottom right block
     mat_v = -a2inv * a1;
-    Mlarge.block(mydat.nelem(), mydat.nelem(), mydat.nelem(), mydat.nelem()) =mat_v;
-        
+    Mlarge.block(mydat.nelem(), mydat.nelem(), mydat.nelem(), mydat.nelem()) =
+        mat_v;
 
     // timing
     stop = high_resolution_clock::now();
@@ -136,12 +136,11 @@ main() {
     // Form RHS
     fRHS.resize(2 * mydat.nelem());
     fRHS.block(0, 0, mydat.nelem(), 1) = Eigen::VectorXcd::Zero(mydat.nelem());
-    
+
     Eigen::VectorXcd mat_f;
     mat_f = a2inv * mydat.vs();
     fRHS.block(mydat.nelem(), 0, mydat.nelem(), 1) = mat_f;
-    
-    
+
     vecr.resize(2 * mydat.nelem(), mydat.vr().cols());
 
     // top half, ie receiver vector part
@@ -150,7 +149,7 @@ main() {
     // bottom half, ie zeros
     vecr.block(mydat.nelem(), 0, mydat.nelem(), mydat.vr().cols()) =
         Eigen::MatrixXcd::Zero(mydat.nelem(), mydat.vr().cols());
-           //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
     // eigensolve
 
     // equiv calc of raw spectra
@@ -160,26 +159,31 @@ main() {
 
     Eigen::MatrixXcd mat_rkout;
     Eigen::VectorXcd vec_k1, vec_k2, vec_k3, vec_k4, vec_xn, vec_xnp;
-    vec_xn = Eigen::VectorXcd::Zero(2*mydat.nelem());
-    vec_xnp = Eigen::VectorXcd::Zero(2*mydat.nelem());
+    vec_xn = Eigen::VectorXcd::Zero(2 * mydat.nelem());
+    vec_xnp = Eigen::VectorXcd::Zero(2 * mydat.nelem());
     double val_dt = myfreq.dt();
     int myn = 5000;
     mat_rkout.resize(mydat.nelem2(), myn);
-    mat_rkout.block(0,0,mydat.nelem2(), 1) = vecr * vec_xn;
+    mat_rkout.block(0, 0, mydat.nelem2(), 1) = vecr * vec_xn;
     std::cout << "Hello" << std::endl;
-start = high_resolution_clock::now();
-    for (int idx = 1; idx < myn; ++idx){
+    start = high_resolution_clock::now();
+    for (int idx = 1; idx < myn; ++idx) {
         vec_xn = vec_xnp;
         vec_k1 = Mlarge * vec_xn + fRHS;
-        vec_k2 = vec_k1 + 0.5 * dt * Mlarge *  vec_k1;
+        vec_k2 = vec_k1 + 0.5 * dt * Mlarge * vec_k1;
         vec_k3 = vec_k1 + 0.5 * dt * Mlarge * vec_k2;
         vec_k4 = vec_k1 + dt * Mlarge * vec_k3;
-        vec_xnp = vec_xn + (1/6.0) * dt * (vec_k1 + 2.0*vec_k2 + 2.0*vec_k3 + vec_k4);
+        vec_xnp = vec_xn + (1 / 6.0) * dt *
+                               (vec_k1 + 2.0 * vec_k2 + 2.0 * vec_k3 + vec_k4);
         // mat_rkout.block(0,idx,mydat.nelem2(),1) = vecr * vec_xnp;
-        mat_rkout.block(0,idx,mydat.nelem2(),1) = mydat.vr().transpose() * Mlarge.block(mydat.nelem(),0,mydat.nelem(),2*mydat.nelem()) *  vec_xnp;
+        mat_rkout.block(0, idx, mydat.nelem2(), 1) =
+            mydat.vr().transpose() *
+            Mlarge.block(mydat.nelem(), 0, mydat.nelem(), 2 * mydat.nelem()) *
+            vec_xnp;
         // if (idx%10 == 0) {
         //     // std::cout << "Hello: \n";
-        //     std::cout << mat_rkout.block(0,idx,mydat.nelem2(),1) << std::endl;
+        //     std::cout << mat_rkout.block(0,idx,mydat.nelem2(),1) <<
+        //     std::endl;
         // }
     }
     stop = high_resolution_clock::now();
@@ -206,9 +210,9 @@ start = high_resolution_clock::now();
     // outspec(
     //     mydat.nelem2(), myfreq.nt() / 2 + 1);
 
-    // rawspec = processfunctions::rawtime2freq(tseis, myfreq.nt(), myfreq.dt());
-    // std::cout << rawspec.block(0, 0, mydat.nelem2(), 2) << std::endl;
-    // return outspec;
+    // rawspec = processfunctions::rawtime2freq(tseis, myfreq.nt(),
+    // myfreq.dt()); std::cout << rawspec.block(0, 0, mydat.nelem2(), 2) <<
+    // std::endl; return outspec;
 
     // finding seismogram, can use same as for test:
     // Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> raw_seis;
@@ -216,18 +220,19 @@ start = high_resolution_clock::now();
     //     rawspec, myfreq.df(), myfreq.f1(), myfreq.f2(), myfreq.nt(), 0.0,
     //     myfreq.dt(), myfreq.tout());
     // raw_seis =
-    //     modespectrafunctions::calc_seismogram(rawspec, myfreq, mydat.nelem2());
+    //     modespectrafunctions::calc_seismogram(rawspec, myfreq,
+    //     mydat.nelem2());
     // std::cout << "Hello\n";
     // std::cout << "Hello, it is: " << myfreq.nt0() << std::endl;
 
-
-// std::cout << "The matrix P: \n";
-// std::cout << a0.block(0,0,5,5) <<std::endl;
+    // std::cout << "The matrix P: \n";
+    // std::cout << a0.block(0,0,5,5) <<std::endl;
     // time to frequency
     // Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
     //     fin_spec;
     // fin_spec =
-    //     modespectrafunctions::calc_fspectra(raw_seis, myfreq, mydat.nelem2());
+    //     modespectrafunctions::calc_fspectra(raw_seis, myfreq,
+    //     mydat.nelem2());
     // // std::cout << "Hello again\n";
 
     // // outputting to files

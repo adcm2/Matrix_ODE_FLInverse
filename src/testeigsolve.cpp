@@ -145,19 +145,18 @@ main() {
 
     //  Eigen::EigenSolver<Eigen::MatrixXcd> eigensolver;
     msolve.compute(Mlarge);
-    msolve2.compute( Mlarge.block(mydat.nelem(), mydat.nelem(), mydat.nelem(), mydat.nelem()));
-    msolve3.compute( Mlarge.block(mydat.nelem(), 0, mydat.nelem(), mydat.nelem()));
+    // msolve2.compute( Mlarge.block(mydat.nelem(), mydat.nelem(),
+    // mydat.nelem(), mydat.nelem())); msolve3.compute(
+    // Mlarge.block(mydat.nelem(), 0, mydat.nelem(), mydat.nelem()));
 
     // std::cout << Mlarge.rows() << " " << Mlarge.cols() << std::endl;
-    Eigen::VectorXcd eig_values =
-        msolve.eigenvalues();
-        Eigen::VectorXcd eig_values2 =
-        msolve2.eigenvalues();
-        Eigen::VectorXcd eig_values3 =
-        msolve3.eigenvalues();
-    Eigen::MatrixXcd
-        eig_vecs = msolve.eigenvectors();
-    // std::cout << eig_values2 << std::endl;
+    Eigen::VectorXcd eig_values = msolve.eigenvalues();
+    // Eigen::VectorXcd eig_values2 =
+    // msolve2.eigenvalues();
+    // Eigen::VectorXcd eig_values3 =
+    // msolve3.eigenvalues();
+    Eigen::MatrixXcd eig_vecs = msolve.eigenvectors();
+    std::cout << eig_values << std::endl;
     // std::cout << "The eigenvalues of P^{-1} H: \n";
     // std::cout << eig_values3 << std::endl;
     // std::cout << eig_values(0) << " " << eig_values(1) << std::endl;
@@ -169,7 +168,6 @@ main() {
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Eigensolution time: " << duration.count() / 1000000.0
               << " seconds" << std::endl;
-
 
     //////////////////////////////////////////////////////////////////////////
     // solution
@@ -213,14 +211,15 @@ main() {
     // evaluating at times
     start = high_resolution_clock::now();
     std::vector<double> vec_t = myfreq.t();
-    Eigen::MatrixXcd mat_tout = Eigen::MatrixXcd::Zero(mydat.nelem(), myfreq.nt());
+    Eigen::MatrixXcd mat_tout =
+        Eigen::MatrixXcd::Zero(mydat.nelem(), myfreq.nt());
 
     // mat_tout.resize(mydat.nelem(), myfreq.nt());
     Eigen::MatrixXcd mat_tmp;
     mat_tmp.resize(2 * mydat.nelem(), 1);
     std::complex<double> multfact;
     for (int idx = 0; idx < myfreq.nt(); ++idx) {
-        if (myfreq.t(idx) > myfreq.tout()){
+        if (myfreq.t(idx) > myfreq.tout()) {
             break;
         }
         for (int idx2 = 0; idx2 < 2 * mydat.nelem(); ++idx2) {
@@ -302,9 +301,8 @@ main() {
     // std::cout << "Hello\n";
     // std::cout << "Hello, it is: " << myfreq.nt0() << std::endl;
 
-
-// std::cout << "The matrix P: \n";
-// std::cout << a0.block(0,0,5,5) <<std::endl;
+    // std::cout << "The matrix P: \n";
+    // std::cout << a0.block(0,0,5,5) <<std::endl;
     // time to frequency
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
         fin_spec;
