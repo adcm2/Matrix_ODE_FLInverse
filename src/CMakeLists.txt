@@ -27,7 +27,13 @@ target_link_libraries(testeig PUBLIC Eigen3::Eigen)
 target_link_libraries(testeig PUBLIC FFTWpp)
 target_link_libraries(testeig PUBLIC OpenMP::OpenMP_CXX)
 
-message(STATUS "BLAS VENDOR:    " ${BLA_VENDOR})
-message(STATUS "BLAS LIBRARIES: " ${BLAS_LIBRARIES})
-message(STATUS "FFTW LIBRARIES: " ${FFTW_LIBRARIES})
+
+target_link_libraries(testeig PUBLIC ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+
+add_executable(testRK testRK.cpp)   
+target_link_libraries(testRK PUBLIC Eigen3::Eigen)
+target_link_libraries(testRK PUBLIC FFTWpp)
+target_link_libraries(testRK PUBLIC OpenMP::OpenMP_CXX)
+
+
 target_link_libraries(testeig PUBLIC ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})

@@ -15,8 +15,9 @@ plt.rcParams.update({"font.size": 24})
 
 f = plt.figure()
 
-# print(d[0:3,:])
-# print(dp[0:3,:])
+print(d[0:3,0])
+print(dp[0:3,0])
+print(dpp[0:3,0])
 mynum = max(abs(d[:, 3]))
 plt.subplot(2, 1, 1)
 plt.plot(d[:, 0], d[:, 3], "k")
@@ -30,12 +31,15 @@ plt.ylabel("Comparison")
 
 # # # relative difference
 dout = np.zeros(len(d))
+dout2 = np.zeros(len(d))
 
 for i in range(0, len(d) - 1, 1):
-    dout[i] = abs(dp[i, 3] - d[i, 3]) / mynum
+    dout[i] = abs(2*dpp[i, 3] - d[i, 3]) / mynum
+    dout2[i] = abs(2*dpp[i, 3] - dp[i, 3]) / mynum
 
 plt.subplot(2, 1, 2)
 plt.plot(d[:, 0], dout, "k")
+plt.plot(d[:, 0], dout2, "r")
 plt.xlabel("Frequency (mHz)")
 plt.ylabel("% difference")
 

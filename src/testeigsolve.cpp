@@ -32,16 +32,16 @@ main() {
     filePath2 = pathstring + "/vector_sr.bin";
     filePath3 = pathstring + "/freq_sph.bin";
     auto start = high_resolution_clock::now();
-    std::cout << "Hello\n";
+    // std::cout << "Hello\n";
     couplematrix mydat(filePath, filePath2, filePath3);
-    std::cout << "Hello\n";
+    // std::cout << "Hello\n";
     // std::cout << mydat.nelem() << std::endl;
     // std::cout << mydat.a0()(1, 1) << std::endl;
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
 
-    std::cout << "Time taken to read in matrices: "
-              << duration.count() / 1000000.0 << " seconds" << std::endl;
+    // std::cout << "Time taken to read in matrices: "
+    //           << duration.count() / 1000000.0 << " seconds" << std::endl;
 
     start = high_resolution_clock::now();
     // double f1 = 0.1;       // minimum (mHz)
@@ -67,13 +67,13 @@ main() {
     freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2, qex);
 
     // how many points
-    std::cout << "Number of points evaluated at is: "
-              << myfreq.i2() - myfreq.i1() << std::endl;
+    // std::cout << "Number of points evaluated at is: "
+    //           << myfreq.i2() - myfreq.i1() << std::endl;
 
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
-    std::cout << "Time taken to get frequency setup: "
-              << duration.count() / 1000000.0 << " seconds" << std::endl;
+    // std::cout << "Time taken to get frequency setup: "
+    //           << duration.count() / 1000000.0 << " seconds" << std::endl;
 
     // eigensolver
     std::complex<double> myi(0.0, 1.0);
@@ -141,18 +141,27 @@ main() {
     start = high_resolution_clock::now();
     Eigen::ComplexEigenSolver<
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> >
-        msolve;
+        msolve, msolve2, msolve3;
 
     //  Eigen::EigenSolver<Eigen::MatrixXcd> eigensolver;
     msolve.compute(Mlarge);
-    // std::cout << Mlarge.rows() << " " << Mlarge.cols() << std::endl;
-    Eigen::Vector<std::complex<double>, Eigen::Dynamic> eig_values =
-        msolve.eigenvalues();
-    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
-        eig_vecs = msolve.eigenvectors();
+    msolve2.compute( Mlarge.block(mydat.nelem(), mydat.nelem(), mydat.nelem(), mydat.nelem()));
+    msolve3.compute( Mlarge.block(mydat.nelem(), 0, mydat.nelem(), mydat.nelem()));
 
-    std::cout << eig_values(0) << " " << eig_values(1) << std::endl;
-    std::cout << eig_vecs.block(0, 0, 5, 2) << std::endl;
+    // std::cout << Mlarge.rows() << " " << Mlarge.cols() << std::endl;
+    Eigen::VectorXcd eig_values =
+        msolve.eigenvalues();
+        Eigen::VectorXcd eig_values2 =
+        msolve2.eigenvalues();
+        Eigen::VectorXcd eig_values3 =
+        msolve3.eigenvalues();
+    Eigen::MatrixXcd
+        eig_vecs = msolve.eigenvectors();
+    // std::cout << eig_values2 << std::endl;
+    // std::cout << "The eigenvalues of P^{-1} H: \n";
+    // std::cout << eig_values3 << std::endl;
+    // std::cout << eig_values(0) << " " << eig_values(1) << std::endl;
+    // std::cout << eig_vecs.block(0, 0, 5, 2) << std::endl;
     // std::cout << eig_values(0) * eig_vecs.block(0, 0, 2 * mydat.nelem(), 1) -
     //                  Mlarge * eig_vecs.block(0, 0, 2 * mydat.nelem(), 1)
     //           << std::endl;
@@ -160,6 +169,7 @@ main() {
     duration = duration_cast<microseconds>(stop - start);
     std::cout << "Eigensolution time: " << duration.count() / 1000000.0
               << " seconds" << std::endl;
+
 
     //////////////////////////////////////////////////////////////////////////
     // solution
@@ -194,22 +204,25 @@ main() {
     std::cout << "Rest of calculation time: " << duration.count() / 1000000.0
               << " seconds" << std::endl;
 
-    std::cout << "Hello" << std::endl;
-    std::cout << "nrows, ncols: " << vecref.rows() << " " << vecref.cols()
-              << std::endl;
+    // std::cout << "Hello" << std::endl;
+    // std::cout << "nrows, ncols: " << vecref.rows() << " " << vecref.cols()
+    //           << std::endl;
 
     ///////////////////////////////////////////////////////////////
 
     // evaluating at times
     start = high_resolution_clock::now();
     std::vector<double> vec_t = myfreq.t();
-    Eigen::MatrixXcd mat_tout;
+    Eigen::MatrixXcd mat_tout = Eigen::MatrixXcd::Zero(mydat.nelem(), myfreq.nt());
 
-    mat_tout.resize(mydat.nelem(), myfreq.nt());
+    // mat_tout.resize(mydat.nelem(), myfreq.nt());
     Eigen::MatrixXcd mat_tmp;
     mat_tmp.resize(2 * mydat.nelem(), 1);
     std::complex<double> multfact;
     for (int idx = 0; idx < myfreq.nt(); ++idx) {
+        if (myfreq.t(idx) > myfreq.tout()){
+            break;
+        }
         for (int idx2 = 0; idx2 < 2 * mydat.nelem(); ++idx2) {
             if (eig_values(idx2).real() > 0) {
                 // multfact = 0.0;
@@ -217,6 +230,10 @@ main() {
                     std::exp((-eig_values(idx2).real() +
                               eig_values(idx2).imag() - myfreq.ep()) *
                              static_cast<std::complex<double> >(vec_t[idx]));
+                // multfact =
+                //     std::exp((-eig_values(idx2).real() +
+                //               eig_values(idx2).imag()) *
+                //              static_cast<std::complex<double> >(vec_t[idx]));
             } else {
                 // multfact =
                 //     std::exp(eig_values(idx2) *
@@ -245,15 +262,15 @@ main() {
     // std::cout << "nt*2*nelem*nelem2 is: " << myfreq.nt() *2 * mydat.nelem() *
     // mydat.nelem2()<< std::endl;
 
-    std::cout << mat_tout.block(0, 0, mydat.nelem2(), 5) << std::endl;
+    // std::cout << mat_tout.block(0, 0, mydat.nelem2(), 5) << std::endl;
 
     // equiv calc of raw spectra
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> rawspec;
     Eigen::MatrixXd tseis;
     tseis = mat_tout.real();
-    std::cout << tseis.block(0, 0, mydat.nelem2(), 5) << std::endl;
-    std::cout << tseis.block(0, myfreq.nt() - 4, mydat.nelem2(), 4)
-              << std::endl;
+    // std::cout << tseis.block(0, 0, mydat.nelem2(), 5) << std::endl;
+    // std::cout << tseis.block(0, myfreq.nt() - 4, mydat.nelem2(), 4)
+    //           << std::endl;
 
     // std::cout << std::exp(eig_values(0) * static_cast<std::complex<double> >
     // (vec_t[1])) << std::endl; std::cout << "size: " << eig_values.size() <<
@@ -272,7 +289,7 @@ main() {
     //     mydat.nelem2(), myfreq.nt() / 2 + 1);
 
     rawspec = processfunctions::rawtime2freq(tseis, myfreq.nt(), myfreq.dt());
-    std::cout << rawspec.block(0, 0, mydat.nelem2(), 2) << std::endl;
+    // std::cout << rawspec.block(0, 0, mydat.nelem2(), 2) << std::endl;
     // return outspec;
 
     // finding seismogram, can use same as for test:
@@ -282,9 +299,12 @@ main() {
     //     myfreq.dt(), myfreq.tout());
     raw_seis =
         modespectrafunctions::calc_seismogram(rawspec, myfreq, mydat.nelem2());
-    std::cout << "Hello\n";
-    std::cout << "Hello, it is: " << myfreq.nt0() << std::endl;
+    // std::cout << "Hello\n";
+    // std::cout << "Hello, it is: " << myfreq.nt0() << std::endl;
 
+
+// std::cout << "The matrix P: \n";
+// std::cout << a0.block(0,0,5,5) <<std::endl;
     // time to frequency
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
         fin_spec;
