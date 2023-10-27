@@ -70,11 +70,13 @@ main() {
     double t2;
     double soltol;
     int qex;
-    std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol >>qex;
-    freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2,qex);
+    std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol >>
+        qex;
+    freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2, qex);
 
-    //how many points
-    std::cout << "Number of points evaluated at is: " << myfreq.i2() - myfreq.i1() << std::endl;
+    // how many points
+    std::cout << "Number of points evaluated at is: "
+              << myfreq.i2() - myfreq.i1() << std::endl;
 
     stop = high_resolution_clock::now();
     duration = duration_cast<microseconds>(stop - start);
@@ -120,7 +122,8 @@ main() {
     // spectra
     start = high_resolution_clock::now();
     for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
-        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out" + ".q" + std::to_string(qex);
+        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out" +
+                         ".q" + std::to_string(qex);
 
         myfile.open(outputfilename, std::ios::trunc);
         for (int idx = myfreq.i12(); idx < myfreq.i22(); ++idx) {

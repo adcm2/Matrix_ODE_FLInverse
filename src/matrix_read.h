@@ -81,7 +81,7 @@ couplematrix::couplematrix(std::string filepath, std::string filePath2,
     // finding number of elements
     m_nelem = sqrt((file_size - 24) / (3 * 16));
 
-std::cout << file_size << std::endl;
+    std::cout << file_size << std::endl;
     std::cout << m_nelem << std::endl;
     // resizing matrices using size found
     m_a0.resize(m_nelem, m_nelem);
@@ -98,9 +98,10 @@ std::cout << file_size << std::endl;
     double matbreak;          // placeholder between matrices
 
     // size of matrices in bytes
-    // matbytes = static_cast<long int>(m_nelem) * static_cast<long int>(m_nelem) * 16;
+    // matbytes = static_cast<long int>(m_nelem) * static_cast<long
+    // int>(m_nelem) * 16;
     matbytes = m_nelem * m_nelem * 16;
-std::cout << matbytes << std::endl;
+    std::cout << matbytes << std::endl;
     // read matrices
     infile.read(reinterpret_cast<char *>(m_a0.data()), matbytes);
     infile.read(reinterpret_cast<char *>(&matbreak), 8);   // placeholder

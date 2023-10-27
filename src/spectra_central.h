@@ -28,7 +28,8 @@ namespace modespectrafunctions {
 using complexd = std::complex<double>;
 
 Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
-rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double soltol) {
+rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
+           const double soltol) {
     // indices
     auto i1 = calcdata.i1();
     auto i2 = calcdata.i2();
@@ -45,22 +46,21 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
         static_cast<std::complex<double> >(calcdata.ep());
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> A(
         matdata.nelem(), matdata.nelem());
-        Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> mat_a0(
-        matdata.nelem(), matdata.nelem()), mat_a1(
-        matdata.nelem(), matdata.nelem()), mat_a2(
-        matdata.nelem(), matdata.nelem()); 
-        mat_a0 = matdata.a0();
-        mat_a1 = matdata.a1();
-        mat_a2 = matdata.a2();
-        // shared(mat_a0, mat_a1, mat_a2) 
+    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> mat_a0(
+        matdata.nelem(), matdata.nelem()),
+        mat_a1(matdata.nelem(), matdata.nelem()),
+        mat_a2(matdata.nelem(), matdata.nelem());
+    mat_a0 = matdata.a0();
+    mat_a1 = matdata.a1();
+    mat_a2 = matdata.a2();
+    // shared(mat_a0, mat_a1, mat_a2)
 //////////////////////////////////////////////////////////////////////////////////
-#pragma omp parallel private(A) shared(mat_a0, mat_a1, mat_a2) 
+#pragma omp parallel private(A) shared(mat_a0, mat_a1, mat_a2)
     {
-
-#pragma omp for schedule(dynamic,10)
+#pragma omp for schedule(dynamic, 10)
         for (int idx = i1; idx < i2; ++idx) {
             // coupling matrix
-    
+
             // tmp(0, idx) = calcdata.w(idx) * oneovertwopi;   // frequency
 
             // run through all frequencies and if between f1 and f2 compute
@@ -73,8 +73,9 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
             //////////////////////////////////////////////////////////////////////////////////
 
             // declare value of A
-            // A = matdata.a0() + winp * matdata.a1() + winp * winp * matdata.a2();
-            A = mat_a0 +  winp * mat_a1 + winp * winp * mat_a2;
+            // A = matdata.a0() + winp * matdata.a1() + winp * winp *
+            // matdata.a2();
+            A = mat_a0 + winp * mat_a1 + winp * winp * mat_a2;
 
             // include diagonal component
             for (int idx = 0; idx < A.rows(); ++idx) {
@@ -101,10 +102,10 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata, const double
             incond.setblock(A, vecidx[0], vecidx[1]);
             x0 = incond.solve(vrhs);
 
-            //LU decomposition
-            // Eigen::FullPivLU<Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> > fsolve;
-            // fsolve.compute(A);
-            // vlhs = fsolve.solve(vrhs);
+            // LU decomposition
+            //  Eigen::FullPivLU<Eigen::Matrix<std::complex<double>,
+            //  Eigen::Dynamic, Eigen::Dynamic> > fsolve; fsolve.compute(A);
+            //  vlhs = fsolve.solve(vrhs);
 
             //////////////////////////////////////////////////////////////////////////////////
 
