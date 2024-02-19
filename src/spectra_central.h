@@ -9,19 +9,11 @@
 #include <Eigen/Dense>
 #include <Eigen/IterativeLinearSolvers>
 #include <FFTWpp/All>
-// #include "./FFTWpp/All"
-#include <chrono>
 #include <complex>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <string>
 #include <vector>
 
 #include "BlockPreconditioner.h"
 #include "blockindex.h"
-// #include "filter_header.h"
-#include "filter_base.h"
 #include "postprocessfunctions.h"
 
 namespace modespectrafunctions {

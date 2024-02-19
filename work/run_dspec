@@ -5,7 +5,7 @@ njob=1
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.1
-fmax=2.0
+fmax=1.0
 
 # time step (seconds)
 tstep=20
@@ -14,7 +14,7 @@ tstep=20
 tend=256
 
 # frequency step (mHz)
-fstep=0.05
+fstep=0.2
 
 # target block width (mHz)
 fblock=0.05

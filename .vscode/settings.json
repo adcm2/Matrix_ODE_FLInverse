@@ -81,6 +81,7 @@
         "*.ipp": "cpp",
         "filesystem": "cpp",
         "core": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "source_location": "cpp"
     }
 }
