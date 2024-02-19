@@ -1,0 +1,9 @@
+#!/bin/bash
+
+time ./build_coupling
+
+time ./run_dspec
+
+time ./run_test
+
+time ./run_eigtest

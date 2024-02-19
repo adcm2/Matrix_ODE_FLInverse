@@ -2,7 +2,7 @@
 
 # set the minimum and maximum frequencies for the modes
 fmin=0.1
-fmax=1.5
+fmax=1.0
 
 # set the range of structural degrees
 smin=0

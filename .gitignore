@@ -6,3 +6,6 @@
 **/*.STAT1.*
 **/*.out
 **/data
+**/storedata
+**/*.out*
+**/oldfiles

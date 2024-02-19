@@ -1,53 +1,115 @@
+// #ifndef EIGEN_DONT_PARALLELIZE
+// #define EIGEN_DONT_PARALLELIZE
+// #endif
+// #ifndef EIGEN_USE_BLAS
+// #define EIGEN_USE_BLAS
+// #endif
+// #ifndef EIGEN_USE_LAPACKE_STRICT
+// #define EIGEN_USE_LAPACKE_STRICT
+// #endif
+
+// #include <math.h>
+// #include <omp.h>
+// #include <stdio.h>
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include <chrono>
+#include <filesystem>
 #include <iostream>
 #include <vector>
 
-#include "blockindex.h"
+#include "filter_header.h"
+#include "freq_setup.h"
+#include "matrix_read.h"
+#include "spectra_central.h"
+
+using namespace std::chrono;
 int
 main() {
-    Eigen::Matrix<int, Eigen::Dynamic, 1> ll;
-    Eigen::Matrix<double, Eigen::Dynamic, 1> ww;
+    //////////////////////////////////////////////////////////////////////////
+    // file path information
+    std::string pathstring, filePath, filePath2, filePath3;
+    pathstring = std::filesystem::current_path();
+    filePath = pathstring + "/matrix.bin";
+    filePath2 = pathstring + "/vector_sr.bin";
+    filePath3 = pathstring + "/freq_sph.bin";
 
-    // fill out
-    // ll.resize(10);
-    // ww.resize(10);
-    // ll(0) = 0;
-    // ll(1) = 1;
-    // ll(2) = 1;
-    // ll(3) = 1;
-    // ll(4) = 2;
-    // ll(5) = 2;
-    // ll(6) = 2;
-    // ll(7) = 2;
-    // ll(8) = 2;
-    // ll(9) = 2;
-    // ww(0) = 0.0;
-    // ww(1) = 1.0;
-    // ww(2) = 1.0;
-    // ww(3) = 2.0;
-    // ww(4) = 2.0;
-    // ww(5) = 2.0;
-    // ww(6) = 3.0;
-    // ww(7) = 4.0;
-    // ww(8) = 5.0;
-    // ww(9) = 6.0;
-    ll.resize(6);
-    ww.resize(6);
-    ll(0) = 2;
-    ll(1) = 2;
-    ll(2) = 1;
-    ll(3) = 3;
-    ll(4) = 3;
-    ll(5) = 4;
-    ww(0) = 0.001943;
-    ww(1) = 0.002382;
-    ww(2) = 0.002538;
-    ww(3) = 0.002944;
-    ww(4) = 0.003683;
-    ww(5) = 0.004066;
-    std::vector<int> validx;
-    validx = randomfunctions::findindex(0.002, 0.0003, ll, ww);
-    std::cout << validx[0] << " " << validx[1] << std::endl;
+    //////////////////////////////////////////////////////////////////////////
+    // extracting coupling matrices from binary files
+    auto start = high_resolution_clock::now();   // time start
+
+    // actual extraction
+    couplematrix mydat(filePath, filePath2, filePath3);
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    std::cout << "Time taken to read in matrices: "
+              << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    //////////////////////////////////////////////////////////////////////////
+    double f1, f2, dt, tout, df0, wtb, t1, t2, soltol;
+    int qex;
+
+    // inputting data for parameters of spectra
+    std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol >>
+        qex;
+
+    // getting setup of frequencies etc used in idsm
+    freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2, qex);
+
+    //////////////////////////////////////////////////////////////////////////
+    // evaluate raw spectra
+    auto rawspec = modespectrafunctions::rawspectra(myfreq, mydat, soltol);
+
+    // find seismogram
+    auto raw_seis =
+        modespectrafunctions::calc_seismogram(rawspec, myfreq, mydat.nelem2());
+
+    // find filtered spectra
+    auto fin_spec =
+        modespectrafunctions::calc_fspectra(raw_seis, myfreq, mydat.nelem2());
+
+    //////////////////////////////////////////////////////////////////////////
+    // outputting to files
+    std::ofstream myfile;
+    std::string outputfilebase = "fspectra.r";
+    std::string outputfilename;
+
+    // spectra
+    for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
+        // name of output
+        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out" +
+                         ".q" + std::to_string(qex);
+
+        // opening and writing to file
+        myfile.open(outputfilename, std::ios::trunc);
+        for (int idx = myfreq.i12(); idx < myfreq.i22(); ++idx) {
+            myfile << std::setprecision(17) << myfreq.f2(idx) * 1000 << ";"
+                   << fin_spec(oidx, idx).real() << ";"
+                   << fin_spec(oidx, idx).imag() << ";"
+                   << std::abs(fin_spec(oidx, idx)) << std::endl;
+        }
+        myfile.close();
+    }
+
+    // seismogram
+    outputfilebase = "tspectra.r";
+    for (int oidx = 0; oidx < mydat.nelem2(); ++oidx) {
+        // name
+        outputfilename = outputfilebase + std::to_string(oidx + 1) + ".out";
+
+        // opening and writing to file
+        myfile.open(outputfilename, std::ios::trunc);
+        for (int idx = 0; idx < myfreq.nt(); ++idx) {
+            // double tval = idx * mymode.dt / 3600;
+            if (myfreq.t(idx) < myfreq.tout()) {
+                myfile << std::setprecision(17) << myfreq.t(idx) << ";"
+                       << raw_seis(oidx, idx) << std::endl;
+            }
+        }
+        myfile.close();
+    }
+
     return 0;
 }

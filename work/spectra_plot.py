@@ -3,73 +3,47 @@ import matplotlib.pyplot as plt
 import math
 
 d = np.loadtxt("spectra_test.STAT1.Z")
-dp = np.loadtxt("fspectra.r1.out", delimiter=";")
+dp = np.loadtxt("fspectra.r1.out.q4", delimiter=";")
+dpp = np.loadtxt("fspectra.fullcouple.r1.out.q4", delimiter=";")
+# dp = np.loadtxt("fspectra.r1.out.q4", delimiter=";")
+# d = np.loadtxt("spectra_test.STAT1.N")
+# dp = np.loadtxt("fspectra.r2.out.q4", delimiter=";")
+# d = np.loadtxt("spectra_test.STAT1.E")
+# dp = np.loadtxt("fspectra.r3.out.q4", delimiter=";")
 
-plt.rcParams.update({"font.size": 24})
+plt.rcParams.update({"font.size": 30})
 
-f = plt.figure()
+# f = plt.figure()
+f,ax = plt.subplots()
 
-# plt.subplot(3,1,1)
+# print(d[0:3,0])
+# print(dp[0:3,0])
+# print(dpp[0:3,0])
+mynum = max(abs(d[:, 3]))
+# plt.subplot(2, 1, 1)
 # plt.plot(d[:, 0], d[:, 3], "k")
 # plt.plot(dp[:, 0], dp[:, 3], "r")
-# plt.legend(['Fortran', 'C++'])
-# # plt.title('Direct comparison of two solvers')
+# plt.plot(dpp[:, 0], dpp[:, 3] * 2, "b")
+# plt.legend(["Fortran", "C++"])
 
-# dout = np.zeros(len(d)-1)
-# # print(len(dout))
-# plt.subplot(3,1,2)
-# mynum = max(abs(d[:,3]))
-# for i in range(1,len(d),1):
-#     # dout[i-1] = abs(dp[i-1, 3] - d[i,3])/d[i,3]*100*(1 - math.exp(-(100 * abs(d[i,3])/mynum)**2))
-#     if abs(d[i,3]) > 0.001 * mynum:
-#         dout[i-1] = abs(dp[i-1, 3] - d[i,3])/d[i,3]*100
-
-# # # plt.plot(d[1:len(d), 0], abs(dp[:, 3] - d[1:len(d),3])/d[1:len(d),3]*100*(1 - math.exp(-abs(d[1:len(d),3]))), "r")
-# plt.plot(d[1:len(d), 0], dout, "r")
-# # plt.title('"Relative" difference')
-
-# plt.subplot(3,1,3)
-# plt.plot(d[1:len(d), 0], abs(dp[:, 3] - d[1:len(d),3]), "r")
-
-# plt.subplot(2,1,1)
-plt.plot(d[:, 0], d[:, 3], "k")
-plt.plot(dp[:, 0], dp[:, 3], "r")
-plt.legend(['Fortran', 'C++'])
-# plt.title('Direct comparison of two solvers')
-
-# dout = np.zeros(len(d)-1)
-# # print(len(dout))
-# plt.subplot(3,1,2)
-# mynum = max(abs(d[:,3]))
-# for i in range(1,len(d),1):
-#     # dout[i-1] = abs(dp[i-1, 3] - d[i,3])/d[i,3]*100*(1 - math.exp(-(100 * abs(d[i,3])/mynum)**2))
-#     if abs(d[i,3]) > 0.001 * mynum:
-#         dout[i-1] = abs(dp[i-1, 3] - d[i,3])/d[i,3]*100
-
-# # # plt.plot(d[1:len(d), 0], abs(dp[:, 3] - d[1:len(d),3])/d[1:len(d),3]*100*(1 - math.exp(-abs(d[1:len(d),3]))), "r")
-# plt.plot(d[1:len(d), 0], dout, "r")
-# plt.title('"Relative" difference')
+# plt.ylabel("Comparison")
+# plt.ylim(0,mynum)
 
 
+# # # relative difference
+dout = np.zeros(len(d))
+dout2 = np.zeros(len(d))
 
-# plt.subplot(2,1,2)
-# plt.plot(d[1:len(d), 0], abs(dp[:, 3] - d[1:len(d),3]), "r")
+for i in range(0, len(d) - 1, 1):
+    dout[i] = abs(2*dpp[i, 3] - d[i, 3]) / mynum
+    dout2[i] = abs(2*dpp[i, 3] - dp[i, 3]) / mynum
 
+# plt.subplot(2, 1, 2)
+ax.plot(d[:, 0], dout, "k", linewidth = 2.0)
+ax.plot(d[:, 0], dout2, "r", linewidth = 2.0)
+ax.set_xlabel("Frequency (mHz)")
+ax.set_ylabel("% difference (x$10^{-5}$)")
+ax.legend(["Difference between eigensolution and old IDSM code", "Difference between eigensolution and new IDSM code"])
+ax.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 
-
-
-# plt.plot(d[1:len(d), 0], dout, "r")
-# plt.title('Absolute difference')
-
-# print(len(d[1:len(d),3]))
-# print(len(dout))
-# print(d[1:10,0])
-# print(dp[0:10,0])
-
-# print(d[9435:9442,0])
-# print(dp[9435:9441,0])
-
-# plt.gca().set_yticks([])
-# plt.yticks([])
-# plt.xlabel("Frequency (mHz)")
 plt.show()
