@@ -8,7 +8,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/IterativeLinearSolvers>
-#include <FFTWpp/All>
+#include <FFTWpp/Ranges>
 #include <complex>
 #include <vector>
 

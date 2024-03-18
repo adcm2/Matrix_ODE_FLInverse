@@ -1,9 +1,10 @@
 #ifndef POSTPROCESSFUNC_GUARD_H
 #define POSTPROCESSFUNC_GUARD_H
 
-#include <FFTWpp/All>
+#include <FFTWpp/Ranges>
 #include <cassert>
 #include <iterator>
+#include <ranges>
 
 // #include "filter_header.h"
 #include "filter_base.h"
@@ -23,6 +24,7 @@ rawfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
              const int nt) {   // do Fourier transform
 
     // do corrections
+    using namespace FFTWpp;
 
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> tmp(rawspec.rows(),
                                                               nt);
@@ -30,10 +32,11 @@ rawfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
     RealVector outFL(nt);
 
     // Form the plans
-    auto flag = FFTWpp::Measure | FFTWpp::Estimate;
-    auto inview = FFTWpp::MakeDataView1D(inFL);
-    auto outview = FFTWpp::MakeDataView1D(outFL);
-    auto fftplan = FFTWpp::Plan(inview, outview, flag);
+    // auto flag = FFTWpp::Measure | FFTWpp::Estimate;
+    // auto inview = FFTWpp::MakeDataView1D(inFL);
+    // auto outview = FFTWpp::MakeDataView1D(outFL);
+    // auto fftplan = FFTWpp::Plan(inview, outview, flag);
+    auto planForward = Ranges::Plan(Ranges::View(inFL), Ranges::View(outFL), FFTWpp::Measure);
 
     for (int idx = 0; idx < rawspec.rows(); ++idx) {
         // auto itinp = .begin();
@@ -42,7 +45,8 @@ rawfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
         }
 
         // do FFT
-        fftplan.Execute();
+        // fftplan.Execute();
+        planForward.Execute();
 
         for (int idx2 = 0; idx2 < nt; ++idx2) {
             tmp(idx, idx2) = outFL[idx2];
@@ -58,15 +62,17 @@ rawtime2freq(
     const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> &rawspec,
     const int &nt, double dt) {   // do Fourier transform
 
+using namespace FFTWpp;
     // for FFT
     RealVector inFL(nt);
     ComplexVector outFL(nt / 2 + 1);
 
     // Form the plans
-    auto flag = FFTWpp::Measure | FFTWpp::Estimate;
-    auto inview = FFTWpp::MakeDataView1D(inFL);
-    auto outview = FFTWpp::MakeDataView1D(outFL);
-    auto fftplan = FFTWpp::Plan(inview, outview, flag);
+    // auto flag = FFTWpp::Measure | FFTWpp::Estimate;
+    // auto inview = FFTWpp::MakeDataView1D(inFL);
+    // auto outview = FFTWpp::MakeDataView1D(outFL);
+    // auto fftplan = FFTWpp::Plan(inview, outview, flag);
+    auto planForward = Ranges::Plan(Ranges::View(inFL), Ranges::View(outFL), FFTWpp::Measure);
 
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> tmp(
         rawspec.rows(), nt / 2 + 1);
@@ -74,7 +80,8 @@ rawtime2freq(
         for (int idx2 = 0; idx2 < nt; ++idx2) {
             inFL[idx2] = rawspec(idx, idx2);
         }
-        fftplan.Execute();
+        // fftplan.Execute();
+        planForward.Execute();
         for (int idx2 = 0; idx2 < nt / 2 + 1; ++idx2) {
             tmp(idx, idx2) = outFL[idx2] * dt;
         }
