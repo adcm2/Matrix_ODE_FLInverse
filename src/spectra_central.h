@@ -85,20 +85,6 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
                 vrhs(idx) = matdata.vs(idx) / (myi * winp);
             }
 
-            // finding guess
-            std::vector<int> vecidx;
-            vecidx = randomfunctions::findindex(
-                winp.real(), calcdata.wtb(), matdata.ll(), matdata.ww().real());
-            Eigen::BlockPreconditioner<std::complex<double> > incond;
-            incond.compute(A);
-            incond.setblock(A, vecidx[0], vecidx[1]);
-            x0 = incond.solve(vrhs);
-
-            // LU decomposition
-            //  Eigen::FullPivLU<Eigen::Matrix<std::complex<double>,
-            //  Eigen::Dynamic, Eigen::Dynamic> > fsolve; fsolve.compute(A);
-            //  vlhs = fsolve.solve(vrhs);
-
             //////////////////////////////////////////////////////////////////////////////////
 
             // declare solver, using diagonal preconditioner for moment
@@ -107,11 +93,15 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
                             Eigen::BlockPreconditioner<std::complex<double> > >
                 solver;
 
-            //////////////////////////////////////////////////////////////////////////////////
+            // finding guess
+            std::vector<int> vecidx;
+            vecidx = randomfunctions::findindex(
+                winp.real(), calcdata.wtb(), matdata.ll(), matdata.ww().real());
 
             solver.setTolerance(soltol);
             solver.compute(A);
             solver.preconditioner().setblock(A, vecidx[0], vecidx[1]);
+            x0 = solver.preconditioner().solve(vrhs);
 
             //////////////////////////////////////////////////////////////////////////////////
 
