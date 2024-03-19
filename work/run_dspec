@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # set the number of processors
-njob=8
+njob=50
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.1
-fmax=1.0
+fmax=4.0
 
 # time step (seconds)
 tstep=20
@@ -55,12 +55,13 @@ $matrix
 !
 
 
-
 for i in $(seq 1 $njob)
 do
   ../../coupling/bin/dspec_cal $i > dspec_cal.out.$i &
 done
 wait
+
+
 
 ../../coupling/bin/dspec_pro << !
 $njob
