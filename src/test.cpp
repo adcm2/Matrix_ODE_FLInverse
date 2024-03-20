@@ -1,8 +1,8 @@
-// #ifndef EIGEN_DONT_PARALLELIZE
-// #define EIGEN_DONT_PARALLELIZE
-// #endif
+#ifndef EIGEN_DONT_PARALLELIZE
+#define EIGEN_DONT_PARALLELIZE
+#endif
 // #ifndef EIGEN_USE_BLAS
-// #define EIGEN_USE_BLAS   
+// #define EIGEN_USE_BLAS
 // #endif
 // #ifndef EIGEN_USE_LAPACKE_STRICT
 // #define EIGEN_USE_LAPACKE_STRICT
@@ -19,6 +19,7 @@
 #include <iostream>
 #include <vector>
 
+#include "Timer_Class.h"
 #include "filter_header.h"
 #include "freq_setup.h"
 #include "matrix_read.h"
@@ -37,15 +38,13 @@ main() {
 
     //////////////////////////////////////////////////////////////////////////
     // extracting coupling matrices from binary files
-    auto start = high_resolution_clock::now();   // time start
+    Timer timer1;
+    // timer1.start();
 
     // actual extraction
     couplematrix mydat(filePath, filePath2, filePath3);
 
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    std::cout << "Time taken to read in matrices: "
-              << duration.count() / 1000000.0 << " seconds" << std::endl;
+    // timer1.stop("Time taken to read in matrices");
 
     //////////////////////////////////////////////////////////////////////////
     double f1, f2, dt, tout, df0, wtb, t1, t2, soltol;
@@ -54,23 +53,34 @@ main() {
     // inputting data for parameters of spectra
     std::cin >> f1 >> f2 >> dt >> tout >> df0 >> wtb >> t1 >> t2 >> soltol >>
         qex;
-
+    // timer1.start();
     // getting setup of frequencies etc used in idsm
     freq_setup myfreq(f1, f2, dt, tout, df0, wtb, t1, t2, qex);
-
+    // timer1.stop("Time taken to set up frequencies");
     //////////////////////////////////////////////////////////////////////////
+    // timer1.start();
     // evaluate raw spectra
     auto rawspec = modespectrafunctions::rawspectra(myfreq, mydat, soltol);
+    // std::cout << "Hello!\n";
+    // timer1.stop("Time taken to get raw spectra");
 
+    // timer1.start();
     // find seismogram
     auto raw_seis =
         modespectrafunctions::calc_seismogram(rawspec, myfreq, mydat.nelem2());
+    // timer1.stop("Time taken to get raw seismogram");
 
+    // timer1.start();
     // find filtered spectra
+    // Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic,
+    //   Eigen::RowMajor>
+    // fin_spec;
     auto fin_spec =
         modespectrafunctions::calc_fspectra(raw_seis, myfreq, mydat.nelem2());
+    // timer1.stop("Time taken to get filtered spectrum");
 
     //////////////////////////////////////////////////////////////////////////
+    // timer1.start();
     // outputting to files
     std::ofstream myfile;
     std::string outputfilebase = "fspectra.r";
@@ -85,7 +95,7 @@ main() {
         // opening and writing to file
         myfile.open(outputfilename, std::ios::trunc);
         for (int idx = myfreq.i12(); idx < myfreq.i22(); ++idx) {
-            myfile << std::setprecision(17) << myfreq.f2(idx) * 1000 << ";"
+            myfile << std::setprecision(7) << myfreq.f2(idx) * 1000 << ";"
                    << fin_spec(oidx, idx).real() << ";"
                    << fin_spec(oidx, idx).imag() << ";"
                    << std::abs(fin_spec(oidx, idx)) << std::endl;
@@ -104,12 +114,12 @@ main() {
         for (int idx = 0; idx < myfreq.nt(); ++idx) {
             // double tval = idx * mymode.dt / 3600;
             if (myfreq.t(idx) < myfreq.tout()) {
-                myfile << std::setprecision(17) << myfreq.t(idx) << ";"
+                myfile << std::setprecision(7) << myfreq.t(idx) << ";"
                        << raw_seis(oidx, idx) << std::endl;
             }
         }
         myfile.close();
     }
-
+    // timer1.stop("Time to output data");
     return 0;
 }

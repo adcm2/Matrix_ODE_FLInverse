@@ -45,7 +45,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
     mat_a0 = matdata.a0();
     mat_a1 = matdata.a1();
     mat_a2 = matdata.a2();
-    // shared(mat_a0, mat_a1, mat_a2)
+// shared(mat_a0, mat_a1, mat_a2)
 //////////////////////////////////////////////////////////////////////////////////
 #pragma omp parallel private(A) shared(mat_a0, mat_a1, mat_a2)
     {
@@ -122,12 +122,13 @@ calc_seismogram(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
                                     Eigen::Dynamic>& vec_rawspec,
                 const freq_setup& calcdata, const int nelem2) {
     // declare filtered matrix
-    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
-        filtspec(nelem2, calcdata.nt() / 2 + 1);
+    // Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
+    // filtspec(nelem2, calcdata.nt() / 2 + 1);
 
     // take FT into time domain
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> seisout(
         nelem2, calcdata.nt());
+    std::cout << nelem2 << " " << calcdata.nt() << "\n";
 
     seisout = processfunctions::filtfreq2time(
         vec_rawspec, calcdata.df(), calcdata.f1(), calcdata.f2(), calcdata.nt(),

@@ -36,14 +36,18 @@ rawfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
     // auto inview = FFTWpp::MakeDataView1D(inFL);
     // auto outview = FFTWpp::MakeDataView1D(outFL);
     // auto fftplan = FFTWpp::Plan(inview, outview, flag);
-    auto planForward = Ranges::Plan(Ranges::View(inFL), Ranges::View(outFL), FFTWpp::Measure);
+    // std::cout << "Erho1\n";
+    auto planForward =
+        Ranges::Plan(Ranges::View(inFL), Ranges::View(outFL), FFTWpp::Estimate);
+    // std::cout << "Erho2\n";
 
     for (int idx = 0; idx < rawspec.rows(); ++idx) {
         // auto itinp = .begin();
+        // std::cout << "Hi1\n";
         for (int idx2 = 0; idx2 < nt / 2 + 1; ++idx2) {
             inFL[idx2] = rawspec(idx, idx2);
         }
-
+        // std::cout << "Hi2\n";
         // do FFT
         // fftplan.Execute();
         planForward.Execute();
@@ -62,7 +66,7 @@ rawtime2freq(
     const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> &rawspec,
     const int &nt, double dt) {   // do Fourier transform
 
-using namespace FFTWpp;
+    using namespace FFTWpp;
     // for FFT
     RealVector inFL(nt);
     ComplexVector outFL(nt / 2 + 1);
@@ -72,7 +76,8 @@ using namespace FFTWpp;
     // auto inview = FFTWpp::MakeDataView1D(inFL);
     // auto outview = FFTWpp::MakeDataView1D(outFL);
     // auto fftplan = FFTWpp::Plan(inview, outview, flag);
-    auto planForward = Ranges::Plan(Ranges::View(inFL), Ranges::View(outFL), FFTWpp::Measure);
+    auto planForward =
+        Ranges::Plan(Ranges::View(inFL), Ranges::View(outFL), FFTWpp::Estimate);
 
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> tmp(
         rawspec.rows(), nt / 2 + 1);
@@ -104,16 +109,16 @@ filtfreq2time(const Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> tmp(nrow, nt);
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> tmpraw;
     tmpraw = rawspec;
-
+    // std::cout << "Hello1 \n";
     // filter raw spectrum
     for (int idx = 0; idx < nt / 2 + 1; ++idx) {
         tmpraw.block(0, idx, nrow, 1) *=
             filters::hannref(df * idx, f1, f2, 0.1);
     }
-
+    // std::cout << "Hello2 \n";
     // do FFT
     tmp = rawfreq2time(tmpraw, nt);
-
+    // std::cout << "Hello3 \n";
     // undo effect of frequency shift
     for (int idx = 0; idx < nt; ++idx) {
         if (dt * idx < tout) {
