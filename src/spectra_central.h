@@ -14,6 +14,7 @@
 
 #include "BlockPreconditioner.h"
 #include "blockindex.h"
+#include "matrix_replacement.h"
 #include "postprocessfunctions.h"
 
 namespace modespectrafunctions {
@@ -35,7 +36,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
     std::complex<double> myi(0.0, 1.0);
     double oneovertwopi = 1.0 / (2.0 * 3.1415926535897932);
     std::complex<double> imep =
-        static_cast<std::complex<double> >(calcdata.ep());
+        static_cast<std::complex<double>>(calcdata.ep());
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> A(
         matdata.nelem(), matdata.nelem());
     Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> mat_a0(
@@ -45,6 +46,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
     mat_a0 = matdata.a0();
     mat_a1 = matdata.a1();
     mat_a2 = matdata.a2();
+
 // shared(mat_a0, mat_a1, mat_a2)
 //////////////////////////////////////////////////////////////////////////////////
 #pragma omp parallel private(A) shared(mat_a0, mat_a1, mat_a2)
@@ -57,11 +59,14 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
 
             // run through all frequencies and if between f1 and f2 compute
             // if (idx > i1  && idx < i2) {
+
             std::complex<double> winp = calcdata.w(idx) - myi * imep;
 
             // lhs
             Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> vlhs;
-
+            // MatrixReplaceFT<std::complex<double>> rep_A;
+            // rep_A.attachMatrices(mat_a0, mat_a1, mat_a2);
+            // rep_A.frequency(winp);
             //////////////////////////////////////////////////////////////////////////////////
 
             // declare value of A
@@ -90,7 +95,7 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
             // declare solver, using diagonal preconditioner for moment
             Eigen::BiCGSTAB<Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
                                           Eigen::Dynamic>,
-                            Eigen::BlockPreconditioner<std::complex<double> > >
+                            Eigen::BlockPreconditioner<std::complex<double>>>
                 solver;
 
             // finding guess
@@ -103,9 +108,103 @@ rawspectra(const freq_setup& calcdata, const couplematrix& matdata,
             solver.preconditioner().setblock(A, vecidx[0], vecidx[1]);
             x0 = solver.preconditioner().solve(vrhs);
 
+            // Eigen::BiCGSTAB<
+            //     MatrixReplaceFT<std::complex<double>>,
+            //     Eigen::BlockMatFreePreconditioner<std::complex<double>>>
+            //     solver2;
+            // solver2.setTolerance(soltol);
+            // solver2.compute(rep_A);
+            // solver2.preconditioner().setblock(rep_A, vecidx[0], vecidx[1]);
+            // x0 = solver2.preconditioner().solve(vrhs);
             //////////////////////////////////////////////////////////////////////////////////
 
             // solve and return
+            vlhs = solver.solveWithGuess(vrhs, x0);
+            // vlhs = solver2.solveWithGuess(vrhs, x0);
+
+            // find acceleration response using receiver vectors
+            tmp.block(0, idx, matdata.nelem2(), 1) =
+                -winp * winp * matdata.vr().transpose() * vlhs;
+            // };
+        };
+    };
+    return tmp;
+};
+
+// performs solve without actually forming matrix A, can have considerable
+// memory savings
+Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>
+rawspectralowmemory(const freq_setup& calcdata, const couplematrix& matdata,
+                    const double soltol) {
+    // indices
+    auto i1 = calcdata.i1();
+    auto i2 = calcdata.i2();
+    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> tmp =
+        Eigen::Matrix<std::complex<double>, Eigen::Dynamic,
+                      Eigen::Dynamic>::Zero(matdata.nelem2(),
+                                            calcdata.nt() / 2 + 1);
+
+    //////////////////////////////////////////////////////////////////////////////////
+    // some simple values
+    std::complex<double> myi(0.0, 1.0);
+    double oneovertwopi = 1.0 / (2.0 * 3.1415926535897932);
+    std::complex<double> imep =
+        static_cast<std::complex<double>>(calcdata.ep());
+    // Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> A(
+    // matdata.nelem(), matdata.nelem());
+    Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> mat_a0(
+        matdata.nelem(), matdata.nelem()),
+        mat_a1(matdata.nelem(), matdata.nelem()),
+        mat_a2(matdata.nelem(), matdata.nelem());
+    mat_a0 = matdata.a0();
+    mat_a1 = matdata.a1();
+    mat_a2 = matdata.a2();
+
+// shared(mat_a0, mat_a1, mat_a2)
+//////////////////////////////////////////////////////////////////////////////////
+#pragma omp parallel shared(mat_a0, mat_a1, mat_a2)
+    {
+#pragma omp for schedule(dynamic, 10)
+        for (int idx = i1; idx < i2; ++idx) {
+            // coupling matrix
+            std::complex<double> winp = calcdata.w(idx) - myi * imep;
+
+            // lhs
+            Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> vlhs;
+            MatrixReplaceFT<std::complex<double>> rep_A;
+            rep_A.attachMatrices(mat_a0, mat_a1, mat_a2);
+            rep_A.frequency(winp);
+
+            //////////////////////////////////////////////////////////////////////////////////
+            //  rhs and guess
+            Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1> vrhs, x0;
+            vrhs.resize(matdata.nelem());
+            x0.resize(matdata.nelem());
+
+            // find rhs
+            for (int idx = 0; idx < matdata.nelem(); ++idx) {
+                vrhs(idx) = matdata.vs(idx) / (myi * winp);
+            }
+
+            //////////////////////////////////////////////////////////////////////////////////
+
+            // finding guess
+            std::vector<int> vecidx;
+            vecidx = randomfunctions::findindex(
+                winp.real(), calcdata.wtb(), matdata.ll(), matdata.ww().real());
+
+            Eigen::BiCGSTAB<
+                MatrixReplaceFT<std::complex<double>>,
+                Eigen::BlockMatFreePreconditioner<std::complex<double>>>
+                solver;
+            solver.setTolerance(soltol);
+            solver.compute(rep_A);
+            solver.preconditioner().setblock(rep_A, vecidx[0], vecidx[1]);
+            x0 = solver.preconditioner().solve(vrhs);
+            //////////////////////////////////////////////////////////////////////////////////
+
+            // solve and return
+            // vlhs = solver.solveWithGuess(vrhs, x0);
             vlhs = solver.solveWithGuess(vrhs, x0);
 
             // find acceleration response using receiver vectors
