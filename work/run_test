@@ -3,8 +3,8 @@
 export OMP_NUM_THREADS=50
 
 # set minimum and maximum frequency for the calculations (in mHz)
-fmin=0.1
-fmax=3.0
+fmin=0.2
+fmax=0.4
 
 # time step (seconds)
 tstep=20
