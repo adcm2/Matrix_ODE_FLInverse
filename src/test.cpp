@@ -57,6 +57,7 @@ main() {
 
     // actual extraction
     couplematrix mydat(filePath, filePath2, filePath3);
+    std::cout << "#rows: " << mydat.a0().rows() << std::endl;
     using MATRIX =
         Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic>;
     using VECTOR = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, 1>;

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # set the number of processors
-njob=50
+njob=80
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.2
-fmax=0.4
+fmax=4.0
 
 # time step (seconds)
 tstep=20

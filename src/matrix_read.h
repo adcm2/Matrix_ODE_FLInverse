@@ -47,15 +47,15 @@ class couplematrix {
 
     std::complex<double> vs(int idx) const { return m_vs(idx); }
 
-    int nelem() const { return m_nelem; }
-    int nelem2() const { return m_nelem2; }
-    int mtot() const { return m_mtot; }
+    std::size_t nelem() const { return m_nelem; }
+    std::size_t nelem2() const { return m_nelem2; }
+    std::size_t mtot() const { return m_mtot; }
 
    private:
     vecint m_ll;
     veccd m_vs, m_ww;
     matcd m_a0, m_a1, m_a2, m_vr;
-    int m_nelem, m_nelem2, m_mtot;
+    std::size_t m_nelem, m_nelem2, m_mtot;
 };
 
 couplematrix::couplematrix(std::string filepath, std::string filePath2,
@@ -112,6 +112,7 @@ couplematrix::couplematrix(std::string filepath, std::string filePath2,
 
     // close
     infile.close();
+
     // check
     if (!infile.good()) {
         std::cout << "Matrix file error occurred at reading time!" << std::endl;
