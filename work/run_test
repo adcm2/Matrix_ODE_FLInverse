@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export OMP_NUM_THREADS=80
+export OMP_NUM_THREADS=55
 
 # set minimum and maximum frequency for the calculations (in mHz)
 fmin=0.2
